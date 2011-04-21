@@ -1,0 +1,200 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		F8B6CAFA135FC05F00783BA8 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = F8B6CAF9135FC05F00783BA8 /* main.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		F8B6CAF3135FC05E00783BA8 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		F8B6CAF5135FC05E00783BA8 /* ZombieSQL */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ZombieSQL; sourceTree = BUILT_PRODUCTS_DIR; };
+		F8B6CAF9135FC05F00783BA8 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		F8B6CAFB135FC05F00783BA8 /* ZombieSQL.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = ZombieSQL.1; sourceTree = "<group>"; };
+		F8B6CB01135FC0E900783BA8 /* TODO */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TODO; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F8B6CAF2135FC05E00783BA8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		F8B6CAEA135FC05E00783BA8 = {
+			isa = PBXGroup;
+			children = (
+				F8B6CAF8135FC05E00783BA8 /* ZombieSQL */,
+				F8B6CAF6135FC05E00783BA8 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		F8B6CAF6135FC05E00783BA8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F8B6CAF5135FC05E00783BA8 /* ZombieSQL */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F8B6CAF8135FC05E00783BA8 /* ZombieSQL */ = {
+			isa = PBXGroup;
+			children = (
+				F8B6CAF9135FC05F00783BA8 /* main.c */,
+				F8B6CAFB135FC05F00783BA8 /* ZombieSQL.1 */,
+				F8B6CB01135FC0E900783BA8 /* TODO */,
+			);
+			path = ZombieSQL;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F8B6CAF4135FC05E00783BA8 /* ZombieSQL */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F8B6CAFE135FC05F00783BA8 /* Build configuration list for PBXNativeTarget "ZombieSQL" */;
+			buildPhases = (
+				F8B6CAF1135FC05E00783BA8 /* Sources */,
+				F8B6CAF2135FC05E00783BA8 /* Frameworks */,
+				F8B6CAF3135FC05E00783BA8 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ZombieSQL;
+			productName = ZombieSQL;
+			productReference = F8B6CAF5135FC05E00783BA8 /* ZombieSQL */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F8B6CAEC135FC05E00783BA8 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = F8B6CAEF135FC05E00783BA8 /* Build configuration list for PBXProject "ZombieSQL" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = F8B6CAEA135FC05E00783BA8;
+			productRefGroup = F8B6CAF6135FC05E00783BA8 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F8B6CAF4135FC05E00783BA8 /* ZombieSQL */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		F8B6CAF1135FC05E00783BA8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F8B6CAFA135FC05F00783BA8 /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		F8B6CAFC135FC05F00783BA8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = DEBUG;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		F8B6CAFD135FC05F00783BA8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		F8B6CAFF135FC05F00783BA8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		F8B6CB00135FC05F00783BA8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F8B6CAEF135FC05E00783BA8 /* Build configuration list for PBXProject "ZombieSQL" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F8B6CAFC135FC05F00783BA8 /* Debug */,
+				F8B6CAFD135FC05F00783BA8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F8B6CAFE135FC05F00783BA8 /* Build configuration list for PBXNativeTarget "ZombieSQL" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F8B6CAFF135FC05F00783BA8 /* Debug */,
+				F8B6CB00135FC05F00783BA8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = F8B6CAEC135FC05E00783BA8 /* Project object */;
+}
