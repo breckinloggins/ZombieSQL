@@ -26,6 +26,7 @@
 		F8B6CAF5135FC05E00783BA8 /* BraindeadSQL */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = BraindeadSQL; sourceTree = BUILT_PRODUCTS_DIR; };
 		F8B6CAF9135FC05F00783BA8 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		F8B6CAFB135FC05F00783BA8 /* BraindeadSQL.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = BraindeadSQL.1; sourceTree = "<group>"; };
+		F8B6CB01135FC0E900783BA8 /* TODO */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TODO; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,6 +61,7 @@
 			children = (
 				F8B6CAF9135FC05F00783BA8 /* main.c */,
 				F8B6CAFB135FC05F00783BA8 /* BraindeadSQL.1 */,
+				F8B6CB01135FC0E900783BA8 /* TODO */,
 			);
 			path = BraindeadSQL;
 			sourceTree = "<group>";
