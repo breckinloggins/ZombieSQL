@@ -23,7 +23,10 @@ We should try to have the API mimic the eventual schema definitions as closely a
 
 >>>>6941ff<<<<<
 
-Autoincrement column type - but now we have the first operation that could generate an error due to user action (and not some program malfunction).  In this case, it's trying to set a value explicitly in the autoincrement column.  We also have another problem: to keep our API simple, we pass in a simple array of the values.  So how do we pass in a "value" that's not really a value?  It's time for an IGNORED type.
+Autoincrement column type - but now we have the first operation that could generate an error due to user action (and not some program malfunction).  In this case, it's trying to set a value explicitly in the autoincrement column.  We also have another problem: to keep our API simple, we pass in a simple array of the values.  So how do we pass in a "value" that's not really a value?  It's time for an IGNORED type.  Next problem: how do we keep track of the last ID used for each?  It would be a pain to search the table everytime we needed it.  We could store it directly in the table, but what if they had more than one autoincrement column?  Solution: store it in the Column Def!  But it seems hacky to put something in there called "lastAutoincrementNumber".  I hate data members that are only valid for a small substate of the object.  Why don't we do something a bit more elegant and just always store the last inserted value in the Column def?  That would still serve our purpose, be far more elegant, and may come in handy for other uses down the road.  Perfect!
+
+>>>>COMMIT<<<<
+
 Database object as array of tables
 Print database
 Drop database

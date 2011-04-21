@@ -19,8 +19,6 @@
 #define COLTYPE_VARCHAR         4
 #define COLTYPE_AUTOINCREMENT   5
 
-#define COLVAL_IGNORED      NULL            /* For APIs that need a column value but shouldn't be set (e.g. autoincrement columns) */
-
 #define ROW_CHUNKS          128
 
 #define RESULT_SUCCESS             0        /* No error ocurred */
@@ -29,19 +27,24 @@
 typedef int ColumnType;
 typedef int Result;
 
+typedef struct ColumnVal_t
+{
+    int ignored;                        /* Set if the database should ignore whatever the value is (e.g. for autoincrement) */
+    union 
+    {
+        char boolVal;
+        int intVal;
+        float floatVal;
+        char varcharVal[LIMIT_VARCHAR];        
+    };
+} ColumnVal;
+
 typedef struct Column_t
 {
     ColumnType type;
     char name[LIMIT_VARCHAR];
+    ColumnVal* lastInsertedValue;       /* Used mainly to track the last autoincrement number */
 } Column;
-
-typedef union ColumnVal_t
-{
-    char boolVal;
-    int intVal;
-    float floatVal;
-    char varcharVal[LIMIT_VARCHAR];    
-} ColumnVal;
 
 typedef struct Row_t
 {
@@ -65,6 +68,7 @@ Column* CreateColumn(char* name, ColumnType type)
     Column* c = malloc(sizeof(Column));
     c->type = type;
     strcpy(c->name, name);
+    c->lastInsertedValue = NULL;
     
     return c;
 }
@@ -117,7 +121,29 @@ Result InsertInto(Table* table, int columnCount, ColumnVal* values, Row** row)
     
     for (i = 0; i < columnCount; i++)
     {
-        r->values[i] = values[i];
+        if (table->columns[i]->type == COLTYPE_AUTOINCREMENT && !values[i].ignored)
+        {
+            /* You can't set an auto increment column */
+            free(r);
+            return RESULT_ERR_AUTOINCREMENT;
+        }
+        else if (table->columns[i]->type == COLTYPE_AUTOINCREMENT)
+        {
+            int lastValue = -1;
+            if (table->columns[i]->lastInsertedValue != NULL)
+            {
+                lastValue = table->columns[i]->lastInsertedValue->intVal;
+            }
+            
+            values[i].intVal = ++lastValue;
+            r->values[i] = values[i];
+        }
+        else if (!values[i].ignored)
+        {
+            r->values[i] = values[i];
+        }
+        
+        table->columns[i]->lastInsertedValue = &(values[i]);
     }
     
     if (table->freeRowsLeft == 0)
@@ -148,6 +174,7 @@ void PrintColumnValue(ColumnType type, ColumnVal* value)
             printf("%s", value->boolVal? "TRUE" : "FALSE");
             break;
         case COLTYPE_INT:
+        case COLTYPE_AUTOINCREMENT:
             printf("%d", value->intVal);
             break;
         case COLTYPE_FLOAT:
@@ -194,29 +221,33 @@ int main (int argc, const char * argv[])
 {
     int numEmployees, i;
     
-    Column** columns = malloc(4*sizeof(Column*));
-    columns[0] = CreateColumn("ID", COLTYPE_INT);
+    Column** columns = malloc(5*sizeof(Column*));
+    columns[0] = CreateColumn("ID", COLTYPE_AUTOINCREMENT);
     columns[1] = CreateColumn("Name", COLTYPE_VARCHAR);
-    columns[2] = CreateColumn("Salary", COLTYPE_FLOAT);
-    columns[3] = CreateColumn("Active", COLTYPE_BOOLEAN);
+    columns[2] = CreateColumn("Age", COLTYPE_INT);
+    columns[3] = CreateColumn("Salary", COLTYPE_FLOAT);
+    columns[4] = CreateColumn("Active", COLTYPE_BOOLEAN);
     
-    Table* t = CreateTable("Employees", 4, columns);
+    Table* t = CreateTable("Employees", 5, columns);
     
     printf("Enter number of employess: ");
     scanf("%d", &numEmployees);
     for (i = 0; i < numEmployees; i++)
     {
         ColumnVal* values = malloc(4*sizeof(ColumnVal));
-        printf("Employee %d ID: ", i);
-        scanf("%d", &(values[0].intVal));
+        
+        values[0].ignored = 1;
         
         printf("Employee %d Name: ", i);
         scanf("%s", &(values[1].varcharVal));
         
-        printf("Employee %d Salary: ", i);
-        scanf("%f", &(values[2].floatVal));
+        printf("Employee %d Age: ", i);
+        scanf("%d", &(values[2].intVal));
         
-        values[3].boolVal = 1;
+        printf("Employee %d Salary: ", i);
+        scanf("%f", &(values[3].floatVal));
+        
+        values[4].boolVal = 1;
         
         Row* r;
         if (InsertInto(t, 4, values, &r) != RESULT_SUCCESS)
@@ -225,8 +256,6 @@ int main (int argc, const char * argv[])
         }
     }
     
-    
-    // insert code here...
     printf("\n\nEmployees\n");
     PrintTable(t);
     
