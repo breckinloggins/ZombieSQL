@@ -25,16 +25,19 @@ We should try to have the API mimic the eventual schema definitions as closely a
 
 Autoincrement column type - but now we have the first operation that could generate an error due to user action (and not some program malfunction).  In this case, it's trying to set a value explicitly in the autoincrement column.  We also have another problem: to keep our API simple, we pass in a simple array of the values.  So how do we pass in a "value" that's not really a value?  It's time for an IGNORED type.  Next problem: how do we keep track of the last ID used for each?  It would be a pain to search the table everytime we needed it.  We could store it directly in the table, but what if they had more than one autoincrement column?  Solution: store it in the Column Def!  But it seems hacky to put something in there called "lastAutoincrementNumber".  I hate data members that are only valid for a small substate of the object.  Why don't we do something a bit more elegant and just always store the last inserted value in the Column def?  That would still serve our purpose, be far more elegant, and may come in handy for other uses down the road.  Perfect!
 
->>>>COMMIT<<<<
+>>>>ee41a0e<<<<
 
-Database object as array of tables
-Print database
-Drop database
+Now that we can work with some basic table operations, need to create the concept of a database.  For our purposes, a "database" is simply a thing with a name and a bunch of tables.  This is easy enough to create, but we also need to modify the existing API calls to know about databases.  For example, when you create a table, you should create it IN a database.  While we're at it, let's make the API more consistent by returning Results instead of the objects.  The objects returned will be an out parameter. Had to rename InsertInto to InsertRow() because we will have an InsertTable() function.  We also have our first private helper method, so we differentiate it by naming style to show that it shouldn't be called as a public interface.  As an architecture note, we now notice we're doing the whole "see if we have any more chunks left, and if not allocate some more" behavior in two different places.  Only the names have changed.  We won't do anything about this now, but we take note of it and consider it as a possible refactoring to remove the repeated code.
+
+Next, we need calls to drop the database and print it.
+
+>>>>COMMIT<<<<
 
 Update support
 When deleting rows, we'll just mark them as deleted, then we'll have a COMPACT statement that goes in and cleans them up
 
 Print out the results in a pretty fashion
+Expand the Results to be a struct that includes rows affected
 
 Adapt API much closer to SQL syntax using varargs and such.
 

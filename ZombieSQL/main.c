@@ -20,6 +20,7 @@
 #define COLTYPE_AUTOINCREMENT   5
 
 #define ROW_CHUNKS          128
+#define TABLE_CHUNKS        32
 
 #define RESULT_SUCCESS             0        /* No error ocurred */
 #define RESULT_ERR_AUTOINCREMENT   -1       /* Attempt to update or set an autoincrement value */
@@ -63,17 +64,52 @@ typedef struct Table_t
     Row** rows;
 } Table;
 
-Column* CreateColumn(char* name, ColumnType type)
+typedef struct Database_t
+{
+    char name[LIMIT_VARCHAR];
+    int tableCount;
+    int freeTablesLeft;
+    
+    Table** tables;
+} Database;
+
+/*
+ * Private helper methods
+ */
+
+Result _insertTableIntoDatabase(Database* db, Table* table)
+{
+    if (db->freeTablesLeft == 0)
+    {
+        /* We're out of free tables, so allocate some more */
+        db->tables = realloc(db->tables, (db->tableCount + TABLE_CHUNKS)*sizeof(Table*));
+        db->freeTablesLeft = TABLE_CHUNKS;
+    }
+    
+    db->tables[db->tableCount++] = table;
+    db->freeTablesLeft--;
+   
+    return RESULT_SUCCESS;
+}
+
+
+
+/*
+ * Public Interface Methods
+ */
+
+Result CreateColumn(char* name, ColumnType type, Column** column)
 {
     Column* c = malloc(sizeof(Column));
     c->type = type;
     strcpy(c->name, name);
     c->lastInsertedValue = NULL;
     
-    return c;
+    *column = c;
+    return RESULT_SUCCESS;
 }
 
-Table* CreateTable(char* name, int columnCount, Column** columnDefs)
+Result CreateTable(Database* db, char* name, int columnCount, Column** columnDefs, Table** table)
 {
     int i;
     Table* t = malloc(sizeof(Table));
@@ -91,10 +127,25 @@ Table* CreateTable(char* name, int columnCount, Column** columnDefs)
     t->freeRowsLeft = 0;
     t->rowCount = 0;
     
-    return t;
+    _insertTableIntoDatabase(db, t);
+    
+    *table = t;
+    return RESULT_SUCCESS;
 }
 
-void DropTable(Table* table)
+Result CreateDatabase(char* name, Database** database)
+{
+    Database* db = malloc(sizeof(Database));
+    strcpy(db->name, name);
+    db->tables = NULL;
+    db->tableCount = 0;
+    db->freeTablesLeft = 0;
+    
+    *database = db;
+    return RESULT_SUCCESS;
+}
+
+Result DropTable(Table* table)
 {
     int i;
     for (i = 0; i < table->columnCount; i++)
@@ -112,9 +163,29 @@ void DropTable(Table* table)
     free(table->rows);
     table->rows = NULL;
     table->rowCount = 0;
+    table->freeRowsLeft = ROW_CHUNKS;
+    
+    return RESULT_SUCCESS;
 }
 
-Result InsertInto(Table* table, int columnCount, ColumnVal* values, Row** row)
+Result DropDatabase(Database* db)
+{
+    int i;
+    for (i = 0; i < db->tableCount; i++)
+    {
+        DropTable(db->tables[i]);
+        free(db->tables[i]);
+        db->tables[i] = NULL;
+    }
+    free(db->tables);
+    db->tables = NULL;
+    db->tableCount = 0;
+    db->freeTablesLeft = TABLE_CHUNKS;
+    
+    return RESULT_SUCCESS;
+}
+
+Result InsertRow(Table* table, int columnCount, ColumnVal* values, Row** row)
 {
     int i;
     Row* r = malloc(sizeof(Row));
@@ -157,7 +228,6 @@ Result InsertInto(Table* table, int columnCount, ColumnVal* values, Row** row)
     table->freeRowsLeft--;
     
     *row = r;
-    
     return RESULT_SUCCESS;
 }
 
@@ -201,6 +271,8 @@ void PrintRow(Row* row, Column** columns, int columnCount)
 
 void PrintTable(Table* table)
 {
+    printf("%s\n", table->name);
+    
     int i;
     for (i = 0; i < table->columnCount; i++)
     {
@@ -217,18 +289,33 @@ void PrintTable(Table* table)
     }
 }
 
+void PrintDatabase(Database* db)
+{
+    int i;
+    printf("Database: %s\n\n", db->name);
+    for (i = 0; i < db->tableCount; i++)
+    {
+        PrintTable(db->tables[i]);
+        printf("\n\n");
+    }
+}
+
 int main (int argc, const char * argv[])
 {
     int numEmployees, i;
     
-    Column** columns = malloc(5*sizeof(Column*));
-    columns[0] = CreateColumn("ID", COLTYPE_AUTOINCREMENT);
-    columns[1] = CreateColumn("Name", COLTYPE_VARCHAR);
-    columns[2] = CreateColumn("Age", COLTYPE_INT);
-    columns[3] = CreateColumn("Salary", COLTYPE_FLOAT);
-    columns[4] = CreateColumn("Active", COLTYPE_BOOLEAN);
+    Database* db = NULL;
+    CreateDatabase("Company", &db);
     
-    Table* t = CreateTable("Employees", 5, columns);
+    Column** columns = malloc(5*sizeof(Column*));
+    CreateColumn("ID", COLTYPE_AUTOINCREMENT, &(columns[0]));
+    CreateColumn("Name", COLTYPE_VARCHAR, &(columns[1]));
+    CreateColumn("Age", COLTYPE_INT, &(columns[2]));
+    CreateColumn("Salary", COLTYPE_FLOAT, &(columns[3]));
+    CreateColumn("Active", COLTYPE_BOOLEAN, &(columns[4]));
+    
+    Table* t = NULL;
+    CreateTable(db, "Employees", 5, columns, &t);
     
     printf("Enter number of employess: ");
     scanf("%d", &numEmployees);
@@ -250,16 +337,16 @@ int main (int argc, const char * argv[])
         values[4].boolVal = 1;
         
         Row* r;
-        if (InsertInto(t, 4, values, &r) != RESULT_SUCCESS)
+        if (InsertRow(t, 4, values, &r) != RESULT_SUCCESS)
         {
             printf("ERROR inserting row\n");
         }
     }
     
-    printf("\n\nEmployees\n");
-    PrintTable(t);
+    printf("\n");
+    PrintDatabase(db);
     
-    DropTable(t);
+    DropDatabase(db);
     
     return 0;
 }
