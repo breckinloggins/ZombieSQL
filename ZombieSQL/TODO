@@ -31,10 +31,37 @@ Now that we can work with some basic table operations, need to create the concep
 
 Next, we need calls to drop the database and print it.
 
->>>>COMMIT<<<<
+>>>>c5fc8dc<<<<
 
-Update support
-When deleting rows, we'll just mark them as deleted, then we'll have a COMPACT statement that goes in and cleans them up
+Before we start to implement some of the more complicated features, it's time to do some housecleaning.  So far we've been able to do everything in one file.  We don't even have a header file.  I highly recommend starting this way so as not to "over engineer" your program ahead of time just for the sake of picking the right file names for your classes/modules.  But now the program is getting bigger and it's fixing to get a whole LOT bigger.  We still don't need to start breaking out separate modules or anything, but what we DO need to do is separate the public API from the implementation and internal functions.  
+
+So what should we call our first file?  Well everything we've done so far has been database engine internal stuff.  We can anticipate other things down the line that will use this interface (such as the SQL language parser).  So let's just call it "engine".
+
+Now that we're thinking in terms of APIs for other programs to use, we need to be more considerate of the global namespace.  Renamed LIMIT_* to ZDB_LIMIT_* and RESULT_* to ZDB_RESULT_* and so forth.  For a real world example of an API that does this very well, check out GTK and GLib.
+
+I also used this opportunity to get rid of a bad habit I had.  I learned most of my more "advanced" C programming from Andre Lamothe's classic "Tricks of the Game Programming Gurus".  He would always define structs like:
+
+    typedef struct SomeType_tag
+    {
+        // ... struct stuff
+    } SomeType, *SomeTypePtr;
+
+    I have no problem with the typedef of a specific pointer type (though I don't use this style myself).  However, the declaration of the _tag is now archaic and unnecessary.  I've known this for a while but refactoring periods like these are an opportunity to work to change old habits.  So now my struct defs look like:
+
+    typedef struct
+    {
+        // ... struct stuff
+    } SomeType;
+
+    MUCH cleaner.
+
+Renamed all functions, constants, and datatypes.  Now it's time to move the code to the engine file.  Now look at main.c.  This is what you want to see.  A file that expands and gets a little messy while you're coming up with ideas and creating the code, then it gets smaller and tidier when you refactor.
+
+It's also important to remember your audience when programming.  Unless you are programming the top-level part of an application (that actually shows stuff to the user, for example), the code you're writing will be used by other programmers, and they are your users.  Just as you should be considerate to end users by making your application user friendly, you should also be considerate to your programmer users by making a friendly API.  Proper and consistent refactoring is a great way to do this.  One reason is that the code is no longer sitting in front of you in the same file.  So now you get to play user and dogfood your own API.  Remember: just because the only other user of your code may be you, it doesn't matter.  It'll probably be long after you wrote the code and you'll be in a different frame of mind because you'll be coding at a different level of your codbase.  By kind to yourself.
+
+>>>>COMMIT<<<<<
+
+Basic select support.  The way we'll flesh this out is to start with the simplest possible query that involves a table ("SELECT * FROM table") and make sure that works.  Then we'll build upon that.  All queries will be executed using a "forward-only firehose" cursor technique.  In other words, until we need to do something more advanced, we'll just iterate one row at a time and see if it matches the query parameters.  If it does, we'll return the row, if not, we'll go on to the next one, signalling when we're at then end.  Now, keep in mind that the results of a SQL query look an awful lot like a table, so why not reuse the existing table infrastructure to form our results?
 
 Print out the results in a pretty fashion
 Expand the Results to be a struct that includes rows affected
@@ -43,8 +70,8 @@ Adapt API much closer to SQL syntax using varargs and such.
 
 >>>>COMMIT<<<<<
 
-Basic select support
 Update support
+Delete support. When deleting rows, we'll just mark them as deleted, then we'll have a COMPACT statement that goes in and cleans them up
 Compact support
 
 >>>>COMMIT<<<<<

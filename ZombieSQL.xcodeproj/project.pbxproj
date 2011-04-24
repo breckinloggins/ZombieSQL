@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		F8B6CAFA135FC05F00783BA8 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = F8B6CAF9135FC05F00783BA8 /* main.c */; };
+		F8C2A56D1361F0970007060F /* engine.c in Sources */ = {isa = PBXBuildFile; fileRef = F8C2A56B1361F0970007060F /* engine.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -27,6 +28,8 @@
 		F8B6CAF9135FC05F00783BA8 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		F8B6CAFB135FC05F00783BA8 /* ZombieSQL.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = ZombieSQL.1; sourceTree = "<group>"; };
 		F8B6CB01135FC0E900783BA8 /* TODO */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TODO; sourceTree = "<group>"; };
+		F8C2A56B1361F0970007060F /* engine.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = engine.c; sourceTree = "<group>"; };
+		F8C2A56C1361F0970007060F /* engine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = engine.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +65,8 @@
 				F8B6CAF9135FC05F00783BA8 /* main.c */,
 				F8B6CAFB135FC05F00783BA8 /* ZombieSQL.1 */,
 				F8B6CB01135FC0E900783BA8 /* TODO */,
+				F8C2A56B1361F0970007060F /* engine.c */,
+				F8C2A56C1361F0970007060F /* engine.h */,
 			);
 			path = ZombieSQL;
 			sourceTree = "<group>";
@@ -114,6 +119,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F8B6CAFA135FC05F00783BA8 /* main.c in Sources */,
+				F8C2A56D1361F0970007060F /* engine.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -193,6 +199,7 @@
 				F8B6CB00135FC05F00783BA8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
