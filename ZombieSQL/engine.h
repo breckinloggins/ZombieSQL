@@ -12,6 +12,9 @@
 #define ZDB_LIMIT_VARCHAR       255
 #define ZDB_LIMIT_COLUMNS       32
 
+/* NOTE: If you add a datatype, don't forget to add the appropriate support 
+ * to other areas of the code (e.g. the query engine)
+ */
 #define ZDB_COLTYPE_BOOLEAN         1
 #define ZDB_COLTYPE_INT             2
 #define ZDB_COLTYPE_FLOAT           3
@@ -23,6 +26,8 @@
 
 #define ZDB_RESULT_SUCCESS             0        /* No error ocurred */
 #define ZDB_RESULT_ERR_AUTOINCREMENT   -1       /* Attempt to update or set an autoincrement value */
+#define ZDB_RESULT_ERR_INVALID_STATE   -2       /* A parameter resulted in an invalid or unsupported state */
+#define ZDB_RESULT_ERR_INVALID_CAST    -3       /* Attempt was made to get or set a value in the database of a different type than the column's datatype */
 
 typedef int ZdbColumnType;
 typedef int ZdbResult;

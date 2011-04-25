@@ -59,16 +59,38 @@ Renamed all functions, constants, and datatypes.  Now it's time to move the code
 
 It's also important to remember your audience when programming.  Unless you are programming the top-level part of an application (that actually shows stuff to the user, for example), the code you're writing will be used by other programmers, and they are your users.  Just as you should be considerate to end users by making your application user friendly, you should also be considerate to your programmer users by making a friendly API.  Proper and consistent refactoring is a great way to do this.  One reason is that the code is no longer sitting in front of you in the same file.  So now you get to play user and dogfood your own API.  Remember: just because the only other user of your code may be you, it doesn't matter.  It'll probably be long after you wrote the code and you'll be in a different frame of mind because you'll be coding at a different level of your codbase.  By kind to yourself.
 
->>>>COMMIT<<<<<
+>>>>9573ef5<<<<<
 
 Basic select support.  The way we'll flesh this out is to start with the simplest possible query that involves a table ("SELECT * FROM table") and make sure that works.  Then we'll build upon that.  All queries will be executed using a "forward-only firehose" cursor technique.  In other words, until we need to do something more advanced, we'll just iterate one row at a time and see if it matches the query parameters.  If it does, we'll return the row, if not, we'll go on to the next one, signalling when we're at then end.  Now, keep in mind that the results of a SQL query look an awful lot like a table, so why not reuse the existing table infrastructure to form our results?
 
-Print out the results in a pretty fashion
-Expand the Results to be a struct that includes rows affected
+But we need to think ahead a little bit.  As we add more features to the query functionality, the internal data structures are going to get more and more complicated, and our simplistic "it's just a table" approach might not work any more.  It would surely suck to have to change a bunch of downstream code that depended on that.  That's why the query API is a perfect candidate for encapsulation.  In short, the structures that are manipulated will be opaque to the API users, and they will use function calls to manipulate them.
 
-Adapt API much closer to SQL syntax using varargs and such.
+Also along the "thinking ahead" lines... the query API will no doubt be one of the lengthier bits of the code.  So let's think ahead and separate it into its own module from the start.  REFACTOR POINT: We can already see a problem.  If I'm the end user of this library, I don't want to have to remember to include "engine.h", "query.h", and whatever else we may think of.  So we need a top-level header that will make it easy for our users.
+
+Note that even though we KNOW we're going to add the support for multiple tables in the query later, we only wrote it to support one now.  We do this because we have no idea what the implementation is going to look like yet, so why paint ourselves into a corner for no reason.
+
+The Recordset object is essentially an iterator.  Since our query functionality right now just lets us loop through rows in one table, all we need to do to keep track of our position is maintain a current index.  It is obvious that this won't be sufficient for more advanced query functionality, but that's why we keep our recordset object opaque to the library users: it lets us change the underlying implementation without worrying that we'll break other code.
+
+Since we're adding the Get*Value() functions, we immediately see our first instance of an area where modifications to one part of the code must be matched by modifications to another.  In this instance, adding a new datatype to our table engine should be followed by adding appropriate functions in the query engine.  We'll make sure to make a note of that in the engine module.
+
+The Get*Value() functions are just convenience methods.  To keep the code DRY, we have one internal function, _getValue() that actually performs the work.  
+
+Note the bad code "smell" in GetIntValue().  This is a clue that our ColType attributes will need more structure.  In particular, certain types are castable to others.  COLTYPE_AUTOINCREMENT is castable to COLTYPE_INT.  We mark it as a hack to let us know we need to address it later.
+
+Now that we have basic query support, we need to test it.  This is a good time to introduce some functional testing.  We won't go overboard here.  We'll just start by creating a method in the main driver called TestBasicQuery().  Again, don't overcomplicate things by writing functionality before you need it.  This also gives us an opportunity to break out some of our "dumb" test code into more reusable chunks.
+
 
 >>>>COMMIT<<<<<
+
+Expand the Results to include rows affected
+Better error messages in the result struct
+Support for COUNT
+Support for basic query parameters
+
+Support for more generic API in query results (e.g. GetColumnType(), GetNumColumns(), GetColumnName(), generic GetValue(), etc.).  Good opportunity for some C polymorphism since both Tables and Queries can use this same interface.
+
+Print out the results in a pretty fashion.  Replace the current Print() methods.  This will be the describe interface.
+
 
 Update support
 Delete support. When deleting rows, we'll just mark them as deleted, then we'll have a COMPACT statement that goes in and cleans them up

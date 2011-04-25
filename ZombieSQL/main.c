@@ -8,14 +8,28 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include "engine.h"
+#include "zdb.h"
 
-
-int main (int argc, const char * argv[])
+void CreateTestRow(ZdbTable* table, char* name, int age, float salary, int active)
 {
-    int numEmployees, i;
+    ZdbColumnVal* values = malloc(4*sizeof(ZdbColumnVal));
+    values[0].ignored = 1;
+    strcpy(values[1].varcharVal, name);
+    values[2].intVal = age;
+    values[3].floatVal = salary;
+    values[4].boolVal = active;
     
+    ZdbRow* r;
+    if (ZdbInsertRow(table, 5, values, &r) != ZDB_RESULT_SUCCESS)
+    {
+        printf("ERROR inserting row\n");
+    }
+}
+
+ZdbDatabase* CreateTestDatabase()
+{
     ZdbDatabase* db = NULL;
     ZdbCreateDatabase("Company", &db);
     
@@ -29,35 +43,71 @@ int main (int argc, const char * argv[])
     ZdbTable* t = NULL;
     ZdbCreateTable(db, "Employees", 5, columns, &t);
     
-    printf("Enter number of employess: ");
-    scanf("%d", &numEmployees);
-    for (i = 0; i < numEmployees; i++)
+    CreateTestRow(t, "Breckin", 30, 34000.0, 1);
+    CreateTestRow(t, "Bob", 22, 15600.0, 1);
+    CreateTestRow(t, "Jane", 45, 45000.0, 1);
+    CreateTestRow(t, "John", 35, 95600.0, 0);
+    
+    return db;
+}
+
+void TestBasicQuery(ZdbDatabase* db)
+{
+    ZdbQuery* q = NULL;
+    if (ZdbCreateQuery(db, &q) != ZDB_RESULT_SUCCESS)
     {
-        ZdbColumnVal* values = malloc(4*sizeof(ZdbColumnVal));
-        
-        values[0].ignored = 1;
-        
-        printf("Employee %d Name: ", i);
-        scanf("%s", &(values[1].varcharVal));
-        
-        printf("Employee %d Age: ", i);
-        scanf("%d", &(values[2].intVal));
-        
-        printf("Employee %d Salary: ", i);
-        scanf("%f", &(values[3].floatVal));
-        
-        values[4].boolVal = 1;
-        
-        ZdbRow* r;
-        if (ZdbInsertRow(t, 4, values, &r) != ZDB_RESULT_SUCCESS)
-        {
-            printf("ERROR inserting row\n");
-        }
+        printf("Error creating query\n");
+        return;
     }
+    
+    if (ZdbAddQueryTable(q, db->tables[0]) != ZDB_RESULT_SUCCESS)
+    {
+        printf("Error adding table to query\n");
+        return;
+    }
+    
+    ZdbRecordset* rs = NULL;
+    if (ZdbExecuteQuery(q, &rs) != ZDB_RESULT_SUCCESS)
+    {
+        printf("Error executing query\n");
+        return;
+    }
+    
+    while(ZdbNextResult(rs))
+    {
+        int id = 0;
+        char* name;
+        int age = 0;
+        float salary = 0.0f;
+        int active = 0;
+        
+        ZdbGetIntValue(rs, 0, &id);
+        ZdbGetStringValue(rs, 1, &name);
+        ZdbGetIntValue(rs, 2, &age);
+        ZdbGetFloatValue(rs, 3, &salary);
+        ZdbGetBooleanValue(rs, 4, &active);
+        
+        printf("Employee %d (%s/%d): $%.2f [%s]\n",
+               id,
+               name,
+               age,
+               salary,
+               active? "ACTIVE" : "TERMINATED");
+    }
+}
+
+int main (int argc, const char * argv[])
+{
+    ZdbDatabase* db = CreateTestDatabase();
     
     printf("\n");
     ZdbPrintDatabase(db);
     
+    printf("\n\n");
+    printf("Query results:\n");
+    TestBasicQuery(db);
+  
+    ZdbPrintDatabase(db);
     ZdbDropDatabase(db);
     
     return 0;

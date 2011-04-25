@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F86F803D1365B96800AC63C3 /* query.c in Sources */ = {isa = PBXBuildFile; fileRef = F86F803B1365B96800AC63C3 /* query.c */; };
 		F8B6CAFA135FC05F00783BA8 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = F8B6CAF9135FC05F00783BA8 /* main.c */; };
 		F8C2A56D1361F0970007060F /* engine.c in Sources */ = {isa = PBXBuildFile; fileRef = F8C2A56B1361F0970007060F /* engine.c */; };
 /* End PBXBuildFile section */
@@ -24,6 +25,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		F86F803B1365B96800AC63C3 /* query.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = query.c; sourceTree = "<group>"; };
+		F86F803C1365B96800AC63C3 /* query.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = query.h; sourceTree = "<group>"; };
+		F86F803F1365B9DC00AC63C3 /* zdb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = zdb.h; sourceTree = "<group>"; };
 		F8B6CAF5135FC05E00783BA8 /* ZombieSQL */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ZombieSQL; sourceTree = BUILT_PRODUCTS_DIR; };
 		F8B6CAF9135FC05F00783BA8 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		F8B6CAFB135FC05F00783BA8 /* ZombieSQL.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = ZombieSQL.1; sourceTree = "<group>"; };
@@ -67,6 +71,9 @@
 				F8B6CB01135FC0E900783BA8 /* TODO */,
 				F8C2A56B1361F0970007060F /* engine.c */,
 				F8C2A56C1361F0970007060F /* engine.h */,
+				F86F803B1365B96800AC63C3 /* query.c */,
+				F86F803C1365B96800AC63C3 /* query.h */,
+				F86F803F1365B9DC00AC63C3 /* zdb.h */,
 			);
 			path = ZombieSQL;
 			sourceTree = "<group>";
@@ -120,6 +127,7 @@
 			files = (
 				F8B6CAFA135FC05F00783BA8 /* main.c in Sources */,
 				F8C2A56D1361F0970007060F /* engine.c in Sources */,
+				F86F803D1365B96800AC63C3 /* query.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
