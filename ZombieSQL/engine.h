@@ -84,18 +84,14 @@ ZdbResult ZdbDropTable(ZdbTable* table);
 ZdbResult ZdbDropDatabase(ZdbDatabase* db);
 ZdbResult ZdbInsertRow(ZdbTable* table, int columnCount, ZdbColumnVal* values, ZdbRow** row);
 
+ZdbColumnType ZdbGetCanonicalType(ZdbColumnType type);
+int ZdbTypesCompatible(ZdbColumnType type1, ZdbColumnType type2);
+
 void ZdbPrintColumn(ZdbColumn* column);
 void ZdbPrintColumnValue(ZdbColumnType type, ZdbColumnVal* value);
 void ZdbPrintRow(ZdbRow* row, ZdbColumn** columns, int columnCount);
 void ZdbPrintTable(ZdbTable* table);
 void ZdbPrintDatabase(ZdbDatabase* db);
-
-
-
-
-
-
-
 
 
 #endif // ENGINE_H

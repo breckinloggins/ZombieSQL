@@ -79,12 +79,38 @@ Note the bad code "smell" in GetIntValue().  This is a clue that our ColType att
 
 Now that we have basic query support, we need to test it.  This is a good time to introduce some functional testing.  We won't go overboard here.  We'll just start by creating a method in the main driver called TestBasicQuery().  Again, don't overcomplicate things by writing functionality before you need it.  This also gives us an opportunity to break out some of our "dumb" test code into more reusable chunks.
 
+Sure enough, my very basic test code caught PLENTY of stupid errors.
 
->>>>COMMIT<<<<<
+>>>>f2e7e0b<<<<<
+
+Now that we have basic query support (in the form of "SELECT * FROM table"), let's start adding some features.  You can think of the initial set of changes we can make as "stuff to the left of FROM" and "stuff to the right of FROM".  When I start adding features to a new bit of code, I always start with the simplest first.  These often end up providing the structural support for the more advanced features later.
+
+You might think that adding a feature like "SELECT COUNT(*)" would be pretty easy.  After all, we're just going to iterate through the rows and keep a counter.  However, the question is how we are going to return the result.  Currently, we simply provide a pointer to the row.  However, this is a result that isn't the same as the table we're selecting from.  We'll run into the same problem with virtually all other queries that don't start with "SELECT * FROM table".  This suggests we'll need to put in place the machinery for better results collection.  Let's leave that off the table for now.
+
+It's clearly easier to add a feature to the right of the "FROM".  This would only involve testing for something on the current row, and incrementing past it if it's false.  We'll start by adding the simple "=" comparison.
+
+Again going with the simplest thing that could possibly work for the feature we're adding, we are going to add a ZdbQueryCondition object and functions to implement it.  For now, the fields in the structure will be exactly the ones we need to implement the "=" comparison.  We're going to go SLIGHTLY one step ahead and give it a type field so it can at least easily handle "=" "<" ">" and so forth.  When we need fancier query support, this structure will of course change completely.
+
+Now that we have the query condition object, of course we need to add it to ethe query object and put in the right function to add a query condition.
+
+Once again, our column type equivalence problem comes back to bite us.  Let's go ahead and do a basic refactor so we can at least move the hackiness to one spot. We'll introduce the notion of a "canonical type".
+
+There, that's much better.  Not only have we added the notion of compatible types, but it cleans up several areas of the code and reduces the amount of cases we need in most switch statements to only canonical types.
+
+The key to implementing our basic query conditions is the ZdbGetNextResult() function.  It should first TEST that the conditions pass before returning.  If it doesn't match, we'll recursively call GetNextResult() until one does or we reach the end.  Or at least, that's what I want to do.  Since I can't assume your compiler does Tail Call Optimization, I can't be sure that calling GetNextResult() recursively won't result in a stack overflow on some braindead compilers.  Thus, we'll be boring and use a while loop.
+
+Now that we have the basic infrastructure in place, it's time to write our test.  Right now it fails (of course), so it's time to put in the infrastructure to actually support it (_matchesValue(), _matchesQuery(), and so forth).
+
+With the proper infrastructure in place, we see that the tests look good and the correct rows are being returned for the given query conditions.
+
+>>>>COMMIT<<<<
+
+Before we add any more query conditions, we can see that the code is starting to develop a bad "smell" when it comes to types.  Type specific switching code is all over the place, and if you need to add a type, poor you because you're going to have to go all over the code to look for it.  It's time to create a new types module that consolidates this stuff and makes it easier to maintain.  Keep in mind, at any point in the code we're not looking for perfection, just "just enough design" to make the code functional and as elegant as possible.  When we can start to detect that we're stretching the limits of our design, it's time to evolve it by refactoring.
 
 Expand the Results to include rows affected
+COUNT(*) support
+Column selection
 Better error messages in the result struct
-Support for COUNT
 Support for basic query parameters
 
 Support for more generic API in query results (e.g. GetColumnType(), GetNumColumns(), GetColumnName(), generic GetValue(), etc.).  Good opportunity for some C polymorphism since both Tables and Queries can use this same interface.
@@ -93,6 +119,7 @@ Print out the results in a pretty fashion.  Replace the current Print() methods.
 
 
 Update support
+Support for DBNULL in the data and querying (IS [NOT] NULL)
 Delete support. When deleting rows, we'll just mark them as deleted, then we'll have a COMPACT statement that goes in and cleans them up
 Compact support
 

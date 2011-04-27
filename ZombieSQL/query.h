@@ -11,11 +11,18 @@
 
 #include "engine.h"
 
+#define ZDB_QUERY_CONDITION_NONE    0
+#define ZDB_QUERY_CONDITION_EQ      1
+
+typedef int ZdbQueryConditionType;
+
+typedef struct _ZdbQueryCondition ZdbQueryCondition;
 typedef struct _ZdbQuery ZdbQuery;
 typedef struct _ZdbRecordset ZdbRecordset;
 
 ZdbResult ZdbCreateQuery(ZdbDatabase* database, ZdbQuery** query);
 ZdbResult ZdbAddQueryTable(ZdbQuery* query, ZdbTable* table);
+ZdbResult ZdbAddQueryCondition(ZdbQuery* query, ZdbQueryConditionType type, int column, ZdbColumnType valueType, ZdbColumnVal value);
 ZdbResult ZdbExecuteQuery(ZdbQuery* query, ZdbRecordset** recordset);
 
 int ZdbNextResult(ZdbRecordset* recordset);

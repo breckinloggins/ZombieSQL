@@ -51,28 +51,8 @@ ZdbDatabase* CreateTestDatabase()
     return db;
 }
 
-void TestBasicQuery(ZdbDatabase* db)
+void PrintQueryResults(ZdbRecordset* rs)
 {
-    ZdbQuery* q = NULL;
-    if (ZdbCreateQuery(db, &q) != ZDB_RESULT_SUCCESS)
-    {
-        printf("Error creating query\n");
-        return;
-    }
-    
-    if (ZdbAddQueryTable(q, db->tables[0]) != ZDB_RESULT_SUCCESS)
-    {
-        printf("Error adding table to query\n");
-        return;
-    }
-    
-    ZdbRecordset* rs = NULL;
-    if (ZdbExecuteQuery(q, &rs) != ZDB_RESULT_SUCCESS)
-    {
-        printf("Error executing query\n");
-        return;
-    }
-    
     while(ZdbNextResult(rs))
     {
         int id = 0;
@@ -96,6 +76,66 @@ void TestBasicQuery(ZdbDatabase* db)
     }
 }
 
+void TestBasicQuery(ZdbDatabase* db)
+{
+    printf("\nTesting Basic Query...\n");
+    ZdbQuery* q = NULL;
+    if (ZdbCreateQuery(db, &q) != ZDB_RESULT_SUCCESS)
+    {
+        printf("Error creating query\n");
+        return;
+    }
+    
+    if (ZdbAddQueryTable(q, db->tables[0]) != ZDB_RESULT_SUCCESS)
+    {
+        printf("Error adding table to query\n");
+        return;
+    }
+    
+    ZdbRecordset* rs = NULL;
+    if (ZdbExecuteQuery(q, &rs) != ZDB_RESULT_SUCCESS)
+    {
+        printf("Error executing query\n");
+        return;
+    }
+        
+    PrintQueryResults(rs);
+}
+
+void TestOneConditionQuery(ZdbDatabase* db, int column, ZdbQueryConditionType queryType, ZdbColumnVal value, ZdbColumnType valueType)
+{
+    ZdbQuery* q = NULL;
+    if (ZdbCreateQuery(db, &q) != ZDB_RESULT_SUCCESS)
+    {
+        printf("Error creating query\n");
+        return;
+    }
+    
+    if (ZdbAddQueryTable(q, db->tables[0]) != ZDB_RESULT_SUCCESS)
+    {
+        printf("Error adding table to query\n");
+        return;
+    }
+    
+     if (ZdbAddQueryCondition(q, queryType, column, valueType, value) != ZDB_RESULT_SUCCESS)
+    {
+        printf("Error adding query condition\n");
+        return;
+    }
+    
+    ZdbRecordset* rs = NULL;
+    if (ZdbExecuteQuery(q, &rs) != ZDB_RESULT_SUCCESS)
+    {
+        printf("Error executing query\n");
+        return;
+    }
+    
+    PrintQueryResults(rs);
+   
+}
+
+
+
 int main (int argc, const char * argv[])
 {
     ZdbDatabase* db = CreateTestDatabase();
@@ -106,8 +146,31 @@ int main (int argc, const char * argv[])
     printf("\n\n");
     printf("Query results:\n");
     TestBasicQuery(db);
-  
-    ZdbPrintDatabase(db);
+    
+    printf("\nTesting Equality Condition...\n");
+    
+    ZdbColumnVal value;
+    value.ignored = 0;
+    
+    value.intVal = 1;
+    TestOneConditionQuery(db, 0, ZDB_QUERY_CONDITION_EQ, value, ZDB_COLTYPE_AUTOINCREMENT);
+    
+    strcpy(value.varcharVal, "Jane");
+    TestOneConditionQuery(db, 1, ZDB_QUERY_CONDITION_EQ, value, ZDB_COLTYPE_VARCHAR);
+    
+    value.intVal = 30;
+    TestOneConditionQuery(db, 2, ZDB_QUERY_CONDITION_EQ, value, ZDB_COLTYPE_INT);
+    
+    value.floatVal = 34000.00f;
+    TestOneConditionQuery(db, 3, ZDB_QUERY_CONDITION_EQ, value, ZDB_COLTYPE_FLOAT);
+    
+    value.boolVal = 0;
+    TestOneConditionQuery(db, 4, ZDB_QUERY_CONDITION_EQ, value, ZDB_COLTYPE_BOOLEAN);
+    
+    /* Tests multiple results */
+    value.boolVal = 1;
+    TestOneConditionQuery(db, 4, ZDB_QUERY_CONDITION_EQ, value, ZDB_COLTYPE_BOOLEAN);
+    
     ZdbDropDatabase(db);
     
     return 0;

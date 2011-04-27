@@ -168,6 +168,21 @@ ZdbResult ZdbInsertRow(ZdbTable* table, int columnCount, ZdbColumnVal* values, Z
     return ZDB_RESULT_SUCCESS;
 }
 
+ZdbColumnType ZdbGetCanonicalType(ZdbColumnType type)
+{
+    if (type == ZDB_COLTYPE_AUTOINCREMENT)
+    {
+        return ZDB_COLTYPE_INT;
+    }
+    
+    return type;
+}
+
+int ZdbTypesCompatible(ZdbColumnType type1, ZdbColumnType type2)
+{
+    return ZdbGetCanonicalType(type1) == ZdbGetCanonicalType(type2);
+}
+
 void ZdbPrintColumn(ZdbColumn* column)
 {
     printf("%s", column->name);
@@ -175,13 +190,13 @@ void ZdbPrintColumn(ZdbColumn* column)
 
 void ZdbPrintColumnValue(ZdbColumnType type, ZdbColumnVal* value)
 {
-    switch(type)
+    ZdbColumnType canonicalType = ZdbGetCanonicalType(type);
+    switch(canonicalType)
     {
         case ZDB_COLTYPE_BOOLEAN:
             printf("%s", value->boolVal? "TRUE" : "FALSE");
             break;
         case ZDB_COLTYPE_INT:
-        case ZDB_COLTYPE_AUTOINCREMENT:
             printf("%d", value->intVal);
             break;
         case ZDB_COLTYPE_FLOAT:
