@@ -28,6 +28,7 @@
 #define ZDB_RESULT_ERR_AUTOINCREMENT   -1       /* Attempt to update or set an autoincrement value */
 #define ZDB_RESULT_ERR_INVALID_STATE   -2       /* A parameter resulted in an invalid or unsupported state */
 #define ZDB_RESULT_ERR_INVALID_CAST    -3       /* Attempt was made to get or set a value in the database of a different type than the column's datatype */
+#define ZDB_RESULT_ERR_UNSUPPORTED     -4       /* Operation is not supported */
 
 typedef int ZdbColumnType;
 typedef int ZdbResult;
@@ -77,21 +78,24 @@ typedef struct
     ZdbTable** tables;
 } ZdbDatabase;
 
-ZdbResult ZdbCreateColumn(char* name, ZdbColumnType type, ZdbColumn** column);
-ZdbResult ZdbCreateTable(ZdbDatabase* db, char* name, int columnCount, ZdbColumn** columnDefs, ZdbTable** table);
-ZdbResult ZdbCreateDatabase(char* name, ZdbDatabase** database);
-ZdbResult ZdbDropTable(ZdbTable* table);
-ZdbResult ZdbDropDatabase(ZdbDatabase* db);
-ZdbResult ZdbInsertRow(ZdbTable* table, int columnCount, ZdbColumnVal* values, ZdbRow** row);
+ZdbResult ZdbEngineCreateColumn(char* name, ZdbColumnType type, ZdbColumn** column);
+ZdbResult ZdbEngineCreateTable(ZdbDatabase* db, char* name, int columnCount, ZdbColumn** columnDefs, ZdbTable** table);
+ZdbResult ZdbEngineCreateDB(char* name, ZdbDatabase** database);
+ZdbResult ZdbEngineDropTable(ZdbTable* table);
+ZdbResult ZdbEngineDropDB(ZdbDatabase* db);
+ZdbResult ZdbEngineInsertRow(ZdbTable* table, int columnCount, ZdbColumnVal* values, ZdbRow** row);
 
+/* TO BE REMOVED */
 ZdbColumnType ZdbGetCanonicalType(ZdbColumnType type);
 int ZdbTypesCompatible(ZdbColumnType type1, ZdbColumnType type2);
+/* ... */
 
+/* TO BE RENAMED AND MOVED TO DESCRIBE MODULE */
 void ZdbPrintColumn(ZdbColumn* column);
 void ZdbPrintColumnValue(ZdbColumnType type, ZdbColumnVal* value);
 void ZdbPrintRow(ZdbRow* row, ZdbColumn** columns, int columnCount);
 void ZdbPrintTable(ZdbTable* table);
 void ZdbPrintDatabase(ZdbDatabase* db);
-
+/* ... */
 
 #endif // ENGINE_H

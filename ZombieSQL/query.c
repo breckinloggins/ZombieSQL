@@ -120,7 +120,7 @@ int _matchesQuery(ZdbRecordset* recordset)
  * Public functions
  */
 
-ZdbResult ZdbCreateQuery(ZdbDatabase* database, ZdbQuery** query)
+ZdbResult ZdbQueryCreate(ZdbDatabase* database, ZdbQuery** query)
 {
     ZdbQuery* q = malloc(sizeof(ZdbQuery));
     q->database = database;
@@ -131,7 +131,7 @@ ZdbResult ZdbCreateQuery(ZdbDatabase* database, ZdbQuery** query)
     return ZDB_RESULT_SUCCESS;
 }
 
-ZdbResult ZdbAddQueryTable(ZdbQuery* query, ZdbTable* table)
+ZdbResult ZdbQueryAddTable(ZdbQuery* query, ZdbTable* table)
 {
     if (query->table != NULL)
     {
@@ -143,7 +143,7 @@ ZdbResult ZdbAddQueryTable(ZdbQuery* query, ZdbTable* table)
     return ZDB_RESULT_SUCCESS;
 }
 
-ZdbResult ZdbAddQueryCondition(ZdbQuery* query, ZdbQueryConditionType type, int column, ZdbColumnType valueType, ZdbColumnVal value)
+ZdbResult ZdbQueryAddCondition(ZdbQuery* query, ZdbQueryConditionType type, int column, ZdbColumnType valueType, ZdbColumnVal value)
 {
     if (value.ignored)
     {
@@ -179,7 +179,7 @@ ZdbResult ZdbAddQueryCondition(ZdbQuery* query, ZdbQueryConditionType type, int 
 }
 
 
-ZdbResult ZdbExecuteQuery(ZdbQuery* query, ZdbRecordset** recordset)
+ZdbResult ZdbQueryExecute(ZdbQuery* query, ZdbRecordset** recordset)
 {
     ZdbRecordset* rs = malloc(sizeof(recordset));
     rs->query = query;
@@ -189,7 +189,7 @@ ZdbResult ZdbExecuteQuery(ZdbQuery* query, ZdbRecordset** recordset)
     return ZDB_RESULT_SUCCESS;
 }
 
-int ZdbNextResult(ZdbRecordset* recordset)
+int ZdbQueryNextResult(ZdbRecordset* recordset)
 {
     while (1)
     {
@@ -210,7 +210,7 @@ int ZdbNextResult(ZdbRecordset* recordset)
     return 1;
 }
 
-ZdbResult ZdbGetIntValue(ZdbRecordset* recordset, int column, int* value)
+ZdbResult ZdbQueryGetInt(ZdbRecordset* recordset, int column, int* value)
 {
     int v;
     ZdbResult result = _getValue(recordset, column, ZDB_COLTYPE_INT, &v);
@@ -223,7 +223,7 @@ ZdbResult ZdbGetIntValue(ZdbRecordset* recordset, int column, int* value)
     return result;
 }
 
-ZdbResult ZdbGetBooleanValue(ZdbRecordset* recordset, int column, int* value)
+ZdbResult ZdbQueryGetBoolean(ZdbRecordset* recordset, int column, int* value)
 {
     int v;
     ZdbResult result = _getValue(recordset, column, ZDB_COLTYPE_BOOLEAN, &v);
@@ -236,7 +236,7 @@ ZdbResult ZdbGetBooleanValue(ZdbRecordset* recordset, int column, int* value)
     return result;
 }
 
-ZdbResult ZdbGetStringValue(ZdbRecordset* recordset, int column, char** value)
+ZdbResult ZdbQueryGetString(ZdbRecordset* recordset, int column, char** value)
 {
     char* v;
     ZdbResult result = _getValue(recordset, column, ZDB_COLTYPE_VARCHAR, &v);
@@ -249,7 +249,7 @@ ZdbResult ZdbGetStringValue(ZdbRecordset* recordset, int column, char** value)
     return result;    
 }
 
-ZdbResult ZdbGetFloatValue(ZdbRecordset* recordset, int column, float* value)
+ZdbResult ZdbQueryGetFloat(ZdbRecordset* recordset, int column, float* value)
 {
     float v;
     ZdbResult result = _getValue(recordset, column, ZDB_COLTYPE_FLOAT, &v);

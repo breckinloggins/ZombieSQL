@@ -21,6 +21,8 @@ Finally, a table has an array of column types (up to a fixed limit) and a pointe
 OK, now that we have the basic definitions out of the way, we need an API to manipulate them.  First off, we need a way to create and drop tables.
 We should try to have the API mimic the eventual schema definitions as closely as possible.
 
+Note that we will not be writing especially secure or tight code.  In particular, you'll notice that the code will be especially susceptible to buffer overruns and leaks memory like a sieve.  If you are an experienced C programmer, you may cringe at some of this stuff, but the point is NOT to make a production-ready system, the point is to show clearly how one might build a database system from the ground up.
+
 >>>>6941ff<<<<<
 
 Autoincrement column type - but now we have the first operation that could generate an error due to user action (and not some program malfunction).  In this case, it's trying to set a value explicitly in the autoincrement column.  We also have another problem: to keep our API simple, we pass in a simple array of the values.  So how do we pass in a "value" that's not really a value?  It's time for an IGNORED type.  Next problem: how do we keep track of the last ID used for each?  It would be a pain to search the table everytime we needed it.  We could store it directly in the table, but what if they had more than one autoincrement column?  Solution: store it in the Column Def!  But it seems hacky to put something in there called "lastAutoincrementNumber".  I hate data members that are only valid for a small substate of the object.  Why don't we do something a bit more elegant and just always store the last inserted value in the Column def?  That would still serve our purpose, be far more elegant, and may come in handy for other uses down the road.  Perfect!
@@ -103,9 +105,29 @@ Now that we have the basic infrastructure in place, it's time to write our test.
 
 With the proper infrastructure in place, we see that the tests look good and the correct rows are being returned for the given query conditions.
 
->>>>COMMIT<<<<
+>>>>8418a54<<<<
 
 Before we add any more query conditions, we can see that the code is starting to develop a bad "smell" when it comes to types.  Type specific switching code is all over the place, and if you need to add a type, poor you because you're going to have to go all over the code to look for it.  It's time to create a new types module that consolidates this stuff and makes it easier to maintain.  Keep in mind, at any point in the code we're not looking for perfection, just "just enough design" to make the code functional and as elegant as possible.  When we can start to detect that we're stretching the limits of our design, it's time to evolve it by refactoring.
+
+I looks like the best way forward is to take the object-oriented approach.  We define a type "base class" and override it for different types.  But for now, we don't actually need any kind of inheritence (it's actually possible in C).  We just need some polymorphism.  Function pointers to the rescue!
+
+Not only is the resulting code cleaner, easier to read, and easier to maintain, but it has a REALLY cool side-benefit: user-defined types!
+
+Of course it's going to be slower than the more direct method we were doing, but we won't worry about that.  Now is the time to DESIGN, not to optimize.  And while we don't go out of our way to make things slow, we don't spend a lot of time optimizing things that, in the long run, may not matter.  Only a profiler can tell you where the bottlenecks REALLY are.
+
+This will also change our conception of what a "row" is.  In our new scheme, a "row" is an amount of space allocated to hold the amount necessary for all the types.  A row gets a big chunk of space, and the "values" array becomes just a set of null pointers.
+
+The other thing we're going to do is get rid of the "AUTOINCREMENT" type.  It was fine for starters, but it's been causing us a lot of problems.  With our new type system, we can simple define an optional function called NextValue() that types can implement if that makes sense.  Then we make AUTOINCREMENT a column def attribute and it's now valid on any type that implements NextValue()!  This also lets us get rid of our "canonical type" idea, which was a bit clunky.
+
+For the standard type functions, we don't want to retype a bunch of stuff just to change the cast, so we'll be using templates.  Of course, C doesn't have templates, but for simple cases you can replicate it with macros.  Most advanced code we've written so far.  But it's not that hard to follow.  I wrote the macros by first writing them for a specific type (int) and then turning it into a macro.  That's much easier than trying to write the macro blind.  I guarantee you that you won't get it right because the compiler isn't giving you any assistance.
+
+Now we just define the public interface to the type system.  This mostly consist of passthrough functions that call the actual type's specific function to do the work.
+
+OK we have the type system coded for the basic types (int and float).  Let's test that before we expand the system to support boolean and varchar.
+
+The tests all pass.  We need to do one more refactoring step while we're in here in anticipation for the work that's to come.  Right now we have an inconsistency in our naming.  For example, to create a type you call "ZdbTypeCreate()" but to create a query you call "ZdbCreateQuery()".  We want all of the function names to follow the Zdb<Module><Fn>() naming convention.  This is for consistency as well as easier browsing through the functions.
+
+>>>>COMMIT<<<<
 
 Expand the Results to include rows affected
 COUNT(*) support

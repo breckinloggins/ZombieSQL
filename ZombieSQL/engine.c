@@ -35,7 +35,7 @@ ZdbResult _insertTableIntoDatabase(ZdbDatabase* db, ZdbTable* table)
  * Public Interface Methods
  */
 
-ZdbResult ZdbCreateColumn(char* name, ZdbColumnType type, ZdbColumn** column)
+ZdbResult ZdbEngineCreateColumn(char* name, ZdbColumnType type, ZdbColumn** column)
 {
     ZdbColumn* c = malloc(sizeof(ZdbColumn));
     c->type = type;
@@ -46,7 +46,7 @@ ZdbResult ZdbCreateColumn(char* name, ZdbColumnType type, ZdbColumn** column)
     return ZDB_RESULT_SUCCESS;
 }
 
-ZdbResult ZdbCreateTable(ZdbDatabase* db, char* name, int columnCount, ZdbColumn** columnDefs, ZdbTable** table)
+ZdbResult ZdbEngineCreateTable(ZdbDatabase* db, char* name, int columnCount, ZdbColumn** columnDefs, ZdbTable** table)
 {
     int i;
     ZdbTable* t = malloc(sizeof(ZdbTable));
@@ -70,7 +70,7 @@ ZdbResult ZdbCreateTable(ZdbDatabase* db, char* name, int columnCount, ZdbColumn
     return ZDB_RESULT_SUCCESS;
 }
 
-ZdbResult ZdbCreateDatabase(char* name, ZdbDatabase** database)
+ZdbResult ZdbEngineCreateDB(char* name, ZdbDatabase** database)
 {
     ZdbDatabase* db = malloc(sizeof(ZdbDatabase));
     strcpy(db->name, name);
@@ -82,7 +82,7 @@ ZdbResult ZdbCreateDatabase(char* name, ZdbDatabase** database)
     return ZDB_RESULT_SUCCESS;
 }
 
-ZdbResult ZdbDropTable(ZdbTable* table)
+ZdbResult ZdbEngineDropTable(ZdbTable* table)
 {
     int i;
     for (i = 0; i < table->columnCount; i++)
@@ -105,12 +105,12 @@ ZdbResult ZdbDropTable(ZdbTable* table)
     return ZDB_RESULT_SUCCESS;
 }
 
-ZdbResult ZdbDropDatabase(ZdbDatabase* db)
+ZdbResult ZdbEngineDropDB(ZdbDatabase* db)
 {
     int i;
     for (i = 0; i < db->tableCount; i++)
     {
-        ZdbDropTable(db->tables[i]);
+        ZdbEngineDropTable(db->tables[i]);
         free(db->tables[i]);
         db->tables[i] = NULL;
     }
@@ -122,7 +122,7 @@ ZdbResult ZdbDropDatabase(ZdbDatabase* db)
     return ZDB_RESULT_SUCCESS;
 }
 
-ZdbResult ZdbInsertRow(ZdbTable* table, int columnCount, ZdbColumnVal* values, ZdbRow** row)
+ZdbResult ZdbEngineInsertRow(ZdbTable* table, int columnCount, ZdbColumnVal* values, ZdbRow** row)
 {
     int i;
     ZdbRow* r = malloc(sizeof(ZdbRow));

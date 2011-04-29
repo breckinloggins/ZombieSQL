@@ -20,16 +20,16 @@ typedef struct _ZdbQueryCondition ZdbQueryCondition;
 typedef struct _ZdbQuery ZdbQuery;
 typedef struct _ZdbRecordset ZdbRecordset;
 
-ZdbResult ZdbCreateQuery(ZdbDatabase* database, ZdbQuery** query);
-ZdbResult ZdbAddQueryTable(ZdbQuery* query, ZdbTable* table);
-ZdbResult ZdbAddQueryCondition(ZdbQuery* query, ZdbQueryConditionType type, int column, ZdbColumnType valueType, ZdbColumnVal value);
-ZdbResult ZdbExecuteQuery(ZdbQuery* query, ZdbRecordset** recordset);
+ZdbResult ZdbQueryCreate(ZdbDatabase* database, ZdbQuery** query);
+ZdbResult ZdbQueryAddTable(ZdbQuery* query, ZdbTable* table);
+ZdbResult ZdbQueryAddCondition(ZdbQuery* query, ZdbQueryConditionType type, int column, ZdbColumnType valueType, ZdbColumnVal value);
+ZdbResult ZdbQueryExecute(ZdbQuery* query, ZdbRecordset** recordset);
 
-int ZdbNextResult(ZdbRecordset* recordset);
+int ZdbQueryNextResult(ZdbRecordset* recordset);
 
-ZdbResult ZdbGetIntValue(ZdbRecordset* recordset, int column, int* value);
-ZdbResult ZdbGetBooleanValue(ZdbRecordset* recordset, int column, int* value);
-ZdbResult ZdbGetStringValue(ZdbRecordset* recordset, int column, char** value);  /* Note: You do NOT own this string! */
-ZdbResult ZdbGetFloatValue(ZdbRecordset* recordset, int column, float* value);
+ZdbResult ZdbQueryGetInt(ZdbRecordset* recordset, int column, int* value);
+ZdbResult ZdbQueryGetBoolean(ZdbRecordset* recordset, int column, int* value);
+ZdbResult ZdbQueryGetString(ZdbRecordset* recordset, int column, char** value);  /* Note: You do NOT own this string! */
+ZdbResult ZdbQueryGetFloat(ZdbRecordset* recordset, int column, float* value);
 
 #endif // QUERY_H
