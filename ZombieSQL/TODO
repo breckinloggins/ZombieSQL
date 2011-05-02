@@ -127,7 +127,7 @@ OK we have the type system coded for the basic types (int and float).  Let's tes
 
 The tests all pass.  We need to do one more refactoring step while we're in here in anticipation for the work that's to come.  Right now we have an inconsistency in our naming.  For example, to create a type you call "ZdbTypeCreate()" but to create a query you call "ZdbCreateQuery()".  We want all of the function names to follow the Zdb<Module><Fn>() naming convention.  This is for consistency as well as easier browsing through the functions.
 
->>>>COMMIT<<<<
+>>>>1394622<<<<
 
 Expand the Results to include rows affected
 COUNT(*) support
