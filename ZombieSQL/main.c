@@ -14,8 +14,8 @@
 
 void CreateTestRow(ZdbTable* table, char* name, int age, float salary, int active)
 {
-    ZdbColumnVal* values = malloc(4*sizeof(ZdbColumnVal));
-    values[0].ignored = 1;
+    ZdbColumnVal* values = malloc(5*sizeof(ZdbColumnVal));
+    values[0].intVal = 0;
     strcpy(values[1].varcharVal, name);
     values[2].intVal = age;
     values[3].floatVal = salary;
@@ -34,11 +34,11 @@ ZdbDatabase* CreateTestDatabase()
     ZdbEngineCreateDB("Company", &db);
     
     ZdbColumn** columns = malloc(5*sizeof(ZdbColumn*));
-    ZdbEngineCreateColumn("ID", ZDB_COLTYPE_AUTOINCREMENT, &(columns[0]));
-    ZdbEngineCreateColumn("Name", ZDB_COLTYPE_VARCHAR, &(columns[1]));
-    ZdbEngineCreateColumn("Age", ZDB_COLTYPE_INT, &(columns[2]));
-    ZdbEngineCreateColumn("Salary", ZDB_COLTYPE_FLOAT, &(columns[3]));
-    ZdbEngineCreateColumn("Active", ZDB_COLTYPE_BOOLEAN, &(columns[4]));
+    ZdbEngineCreateColumn("ID", ZdbStandardTypes->intType, 1, &(columns[0]));
+    ZdbEngineCreateColumn("Name", ZdbStandardTypes->varcharType, 0, &(columns[1]));
+    ZdbEngineCreateColumn("Age", ZdbStandardTypes->intType, 0, &(columns[2]));
+    ZdbEngineCreateColumn("Salary", ZdbStandardTypes->floatType, 0, &(columns[3]));
+    ZdbEngineCreateColumn("Active", ZdbStandardTypes->booleanType, 0, &(columns[4]));
     
     ZdbTable* t = NULL;
     ZdbEngineCreateTable(db, "Employees", 5, columns, &t);
@@ -144,6 +144,12 @@ int TestTypeSystem()
         return 0;
     }
     
+    if (ZdbTypeSizeof(ZdbStandardTypes->intType, &a, &size) != ZDB_RESULT_ERR_UNSUPPORTED)
+    {
+        printf("Did not receive UNSUPPORTED error message for passing in explicit type value to sizeof\n");
+        return 0;
+    }
+    
     // Test From String
     result = ZdbTypeFromString(ZdbStandardTypes->intType, "42", &a);
     if (result != ZDB_RESULT_SUCCESS)
@@ -231,7 +237,7 @@ void TestBasicQuery(ZdbDatabase* db)
     PrintQueryResults(rs);
 }
 
-void TestOneConditionQuery(ZdbDatabase* db, int column, ZdbQueryConditionType queryType, ZdbColumnVal value, ZdbColumnType valueType)
+void TestOneConditionQuery(ZdbDatabase* db, int column, ZdbQueryConditionType queryType, ZdbColumnVal value, ZdbType* valueType)
 {
     ZdbQuery* q = NULL;
     if (ZdbQueryCreate(db, &q) != ZDB_RESULT_SUCCESS)
@@ -259,6 +265,7 @@ void TestOneConditionQuery(ZdbDatabase* db, int column, ZdbQueryConditionType qu
         return;
     }
     
+    printf("Test...\n");
     PrintQueryResults(rs);
    
 }
@@ -267,6 +274,11 @@ void TestOneConditionQuery(ZdbDatabase* db, int column, ZdbQueryConditionType qu
 
 int main (int argc, const char * argv[])
 {
+    if (ZdbTypeInitialize() != ZDB_RESULT_SUCCESS)
+    {
+        printf("Could not initialize type system\n");
+    }
+    
     if (!TestTypeSystem())
     {
         printf("Type system test failed\n");
@@ -288,26 +300,25 @@ int main (int argc, const char * argv[])
     printf("\nTesting Equality Condition...\n");
     
     ZdbColumnVal value;
-    value.ignored = 0;
     
     value.intVal = 1;
-    TestOneConditionQuery(db, 0, ZDB_QUERY_CONDITION_EQ, value, ZDB_COLTYPE_AUTOINCREMENT);
+    TestOneConditionQuery(db, 0, ZDB_QUERY_CONDITION_EQ, value, ZdbStandardTypes->intType);
     
     strcpy(value.varcharVal, "Jane");
-    TestOneConditionQuery(db, 1, ZDB_QUERY_CONDITION_EQ, value, ZDB_COLTYPE_VARCHAR);
+    TestOneConditionQuery(db, 1, ZDB_QUERY_CONDITION_EQ, value, ZdbStandardTypes->varcharType);
     
     value.intVal = 30;
-    TestOneConditionQuery(db, 2, ZDB_QUERY_CONDITION_EQ, value, ZDB_COLTYPE_INT);
+    TestOneConditionQuery(db, 2, ZDB_QUERY_CONDITION_EQ, value, ZdbStandardTypes->intType);
     
     value.floatVal = 34000.00f;
-    TestOneConditionQuery(db, 3, ZDB_QUERY_CONDITION_EQ, value, ZDB_COLTYPE_FLOAT);
+    TestOneConditionQuery(db, 3, ZDB_QUERY_CONDITION_EQ, value, ZdbStandardTypes->floatType);
     
     value.boolVal = 0;
-    TestOneConditionQuery(db, 4, ZDB_QUERY_CONDITION_EQ, value, ZDB_COLTYPE_BOOLEAN);
+    TestOneConditionQuery(db, 4, ZDB_QUERY_CONDITION_EQ, value, ZdbStandardTypes->booleanType);
     
     /* Tests multiple results */
     value.boolVal = 1;
-    TestOneConditionQuery(db, 4, ZDB_QUERY_CONDITION_EQ, value, ZDB_COLTYPE_BOOLEAN);
+    TestOneConditionQuery(db, 4, ZDB_QUERY_CONDITION_EQ, value, ZdbStandardTypes->booleanType);
     
     ZdbEngineDropDB(db);
     

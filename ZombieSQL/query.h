@@ -22,7 +22,7 @@ typedef struct _ZdbRecordset ZdbRecordset;
 
 ZdbResult ZdbQueryCreate(ZdbDatabase* database, ZdbQuery** query);
 ZdbResult ZdbQueryAddTable(ZdbQuery* query, ZdbTable* table);
-ZdbResult ZdbQueryAddCondition(ZdbQuery* query, ZdbQueryConditionType type, int column, ZdbColumnType valueType, ZdbColumnVal value);
+ZdbResult ZdbQueryAddCondition(ZdbQuery* query, ZdbQueryConditionType type, int column, ZdbType* valueType, ZdbColumnVal value);
 ZdbResult ZdbQueryExecute(ZdbQuery* query, ZdbRecordset** recordset);
 
 int ZdbQueryNextResult(ZdbRecordset* recordset);

@@ -129,7 +129,19 @@ The tests all pass.  We need to do one more refactoring step while we're in here
 
 >>>>1394622<<<<
 
+Now that we have the type system in place, it's time to integrate it into the existing code.  This will be somewhat of a major undertaking as it involves removing a lot of switch-based code and replacing it with calls to the type system.  Also, we need to change our notion of what a "row" is.  Right now it's a collection of ColumnVal entries, but these will no longer exist.  Rows will now get their size from the type specifications.  For now, we won't be supporting dynamic row sizing as the memory management is too complicated.  To reflect this, the first thing we'll do is add an error to ZdbTypeSizeof() if an actual instance value is passed in.  With this in place, we know each row in a table will be the same size.  This allows us to simplify the memory management a bit.
+
+Before we implement the full type system, we'll start by replacing the simpler operations with the new counterparts.  One thing we can do right away is remove the "ignored" field from the ColumnVal struct.  This works out REALLY nicely for us because the value union is now the first field in the struct, allowing us to pass them directly into the new type API.
+
+Now that the old type system switch code has been replaced by the new type system code, we need to implement the varchar type to support our test data.
+
+>>>>COMMIT<<<<
+
+Implement rest of type system including NextValue for autoincrement and sizeof for row sizes.  Get rid of ColumnVal struct.
+
+Our test cases are missing an explicit test of the autoincrement functionality, so we need to add that.
 Expand the Results to include rows affected
+Strengthen query tests to test for expected number of returned rows
 COUNT(*) support
 Column selection
 Better error messages in the result struct
@@ -141,6 +153,7 @@ Print out the results in a pretty fashion.  Replace the current Print() methods.
 
 
 Update support
+Alter table support
 Support for DBNULL in the data and querying (IS [NOT] NULL)
 Delete support. When deleting rows, we'll just mark them as deleted, then we'll have a COMPACT statement that goes in and cleans them up
 Compact support

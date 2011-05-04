@@ -12,15 +12,6 @@
 #define ZDB_LIMIT_VARCHAR       255
 #define ZDB_LIMIT_COLUMNS       32
 
-/* NOTE: If you add a datatype, don't forget to add the appropriate support 
- * to other areas of the code (e.g. the query engine)
- */
-#define ZDB_COLTYPE_BOOLEAN         1
-#define ZDB_COLTYPE_INT             2
-#define ZDB_COLTYPE_FLOAT           3
-#define ZDB_COLTYPE_VARCHAR         4
-#define ZDB_COLTYPE_AUTOINCREMENT   5
-
 #define ZDB_ROW_CHUNKS          128
 #define ZDB_TABLE_CHUNKS        32
 
@@ -30,15 +21,14 @@
 #define ZDB_RESULT_ERR_INVALID_CAST    -3       /* Attempt was made to get or set a value in the database of a different type than the column's datatype */
 #define ZDB_RESULT_ERR_UNSUPPORTED     -4       /* Operation is not supported */
 
-typedef int ZdbColumnType;
 typedef int ZdbResult;
+typedef struct _ZdbType ZdbType;
 
 typedef struct
 {
-    int ignored;                        /* Set if the database should ignore whatever the value is (e.g. for autoincrement) */
     union 
     {
-        char boolVal;
+        int boolVal;
         int intVal;
         float floatVal;
         char varcharVal[ZDB_LIMIT_VARCHAR];        
@@ -47,8 +37,9 @@ typedef struct
 
 typedef struct
 {
-    ZdbColumnType type;
+    ZdbType* type;
     char name[ZDB_LIMIT_VARCHAR];
+    int autoincrement;                     /* Whether values autoincrement */
     ZdbColumnVal* lastInsertedValue;       /* Used mainly to track the last autoincrement number */
 } ZdbColumn;
 
@@ -78,21 +69,16 @@ typedef struct
     ZdbTable** tables;
 } ZdbDatabase;
 
-ZdbResult ZdbEngineCreateColumn(char* name, ZdbColumnType type, ZdbColumn** column);
+ZdbResult ZdbEngineCreateColumn(char* name, ZdbType *type, int autoincrement, ZdbColumn** column);
 ZdbResult ZdbEngineCreateTable(ZdbDatabase* db, char* name, int columnCount, ZdbColumn** columnDefs, ZdbTable** table);
 ZdbResult ZdbEngineCreateDB(char* name, ZdbDatabase** database);
 ZdbResult ZdbEngineDropTable(ZdbTable* table);
 ZdbResult ZdbEngineDropDB(ZdbDatabase* db);
 ZdbResult ZdbEngineInsertRow(ZdbTable* table, int columnCount, ZdbColumnVal* values, ZdbRow** row);
 
-/* TO BE REMOVED */
-ZdbColumnType ZdbGetCanonicalType(ZdbColumnType type);
-int ZdbTypesCompatible(ZdbColumnType type1, ZdbColumnType type2);
-/* ... */
-
 /* TO BE RENAMED AND MOVED TO DESCRIBE MODULE */
 void ZdbPrintColumn(ZdbColumn* column);
-void ZdbPrintColumnValue(ZdbColumnType type, ZdbColumnVal* value);
+void ZdbPrintColumnValue(ZdbType* type, ZdbColumnVal* value);
 void ZdbPrintRow(ZdbRow* row, ZdbColumn** columns, int columnCount);
 void ZdbPrintTable(ZdbTable* table);
 void ZdbPrintDatabase(ZdbDatabase* db);

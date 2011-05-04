@@ -13,8 +13,6 @@
 
 #include <stddef.h>
 
-typedef struct _ZdbType ZdbType;
-
 struct _ZdbStandardTypes
 {
     ZdbType* booleanType;

@@ -83,6 +83,50 @@ extern struct _ZdbStandardTypes* ZdbStandardTypes;
         return ZDB_RESULT_SUCCESS;                                      \
     }
 
+/* VARCHAR functions are a little different */
+ZdbResult _comparevarchar(void* value1, void* value2, int* result)
+{
+    *result = strcmp((char*)value1, (char*)value2);
+    
+    return ZDB_RESULT_SUCCESS;
+}
+
+ZdbResult _sizeofvarchar(void* value, size_t* result)
+{
+    *result = ZDB_LIMIT_VARCHAR;
+    
+    return ZDB_RESULT_SUCCESS;
+}
+
+ZdbResult _fromstringvarchar(const char* str, void* result)
+{
+    if (str == NULL)
+    {
+        strcpy((char*)result, "");
+    }
+    else
+    {
+        strcpy((char*)result, str);
+    }
+    
+    return ZDB_RESULT_SUCCESS;
+}
+
+ZdbResult _tostringvarchar(void* value, size_t* length, char* result)
+{
+    if (result == NULL)
+    {
+        /* Just calculate the length */
+        *length = strlen((char*)value);
+    }
+    else
+    {
+        *length = snprintf(result, (*length) + 1, "%s", (char*)value );
+    }
+    return ZDB_RESULT_SUCCESS;
+}
+/* End VARCHAR functions */
+
 struct _ZdbType
 {
     char name[ZDB_LIMIT_VARCHAR];
@@ -105,6 +149,8 @@ DECLARE_FROMSTRING_FN(float, atof, 0.0f)
 DECLARE_TOSTRING_FN(float, "%f")
 DECLARE_NEXTVALUE_FN(float)
 
+
+
 ZdbResult ZdbTypeInitialize()
 {
     ZdbResult result = ZDB_RESULT_SUCCESS;
@@ -115,8 +161,9 @@ ZdbResult ZdbTypeInitialize()
     
     result |= ZdbTypeCreate("float", COMPARISON_FN(float), SIZEOF_FN(float), FROMSTRING_FN(float), TOSTRING_FN(float), NEXTVALUE_FN(float), &ZdbStandardTypes->floatType);
     
-    ZdbStandardTypes->booleanType = NULL;
-    ZdbStandardTypes->varcharType = NULL;
+    result |= ZdbTypeCreate("boolean", COMPARISON_FN(int), SIZEOF_FN(int), FROMSTRING_FN(int), TOSTRING_FN(int), NULL, &ZdbStandardTypes->booleanType);
+    
+    result |= ZdbTypeCreate("varchar", _comparevarchar, _sizeofvarchar, _fromstringvarchar, _tostringvarchar, NULL, &ZdbStandardTypes->varcharType);
     
     return result;
 }
@@ -190,6 +237,13 @@ ZdbResult ZdbTypeSizeof(ZdbType* type, void* value, size_t* result)
     {
         /* Type does not support sizeof operation */
         /* NOTE: Should never happen */
+        return ZDB_RESULT_ERR_UNSUPPORTED;
+    }
+    
+    if (value != NULL)
+    {
+        /* Per-value sizes are not yet supported */
+        /* TODO: Support this */
         return ZDB_RESULT_ERR_UNSUPPORTED;
     }
     

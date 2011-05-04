@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include "engine.h"
+#include "types.h"
 
 /*
  * Private helper methods
@@ -35,11 +36,12 @@ ZdbResult _insertTableIntoDatabase(ZdbDatabase* db, ZdbTable* table)
  * Public Interface Methods
  */
 
-ZdbResult ZdbEngineCreateColumn(char* name, ZdbColumnType type, ZdbColumn** column)
+ZdbResult ZdbEngineCreateColumn(char* name, ZdbType* type, int autoincrement, ZdbColumn** column)
 {
     ZdbColumn* c = malloc(sizeof(ZdbColumn));
     c->type = type;
     strcpy(c->name, name);
+    c->autoincrement = autoincrement;
     c->lastInsertedValue = NULL;
     
     *column = c;
@@ -129,14 +131,9 @@ ZdbResult ZdbEngineInsertRow(ZdbTable* table, int columnCount, ZdbColumnVal* val
     
     for (i = 0; i < columnCount; i++)
     {
-        if (table->columns[i]->type == ZDB_COLTYPE_AUTOINCREMENT && !values[i].ignored)
+        if (table->columns[i]->autoincrement)
         {
-            /* You can't set an auto increment column */
-            free(r);
-            return ZDB_RESULT_ERR_AUTOINCREMENT;
-        }
-        else if (table->columns[i]->type == ZDB_COLTYPE_AUTOINCREMENT)
-        {
+            /* TODO: Use ZdbTypeNextValue() */
             int lastValue = -1;
             if (table->columns[i]->lastInsertedValue != NULL)
             {
@@ -146,7 +143,7 @@ ZdbResult ZdbEngineInsertRow(ZdbTable* table, int columnCount, ZdbColumnVal* val
             values[i].intVal = ++lastValue;
             r->values[i] = values[i];
         }
-        else if (!values[i].ignored)
+        else
         {
             r->values[i] = values[i];
         }
@@ -168,47 +165,38 @@ ZdbResult ZdbEngineInsertRow(ZdbTable* table, int columnCount, ZdbColumnVal* val
     return ZDB_RESULT_SUCCESS;
 }
 
-ZdbColumnType ZdbGetCanonicalType(ZdbColumnType type)
-{
-    if (type == ZDB_COLTYPE_AUTOINCREMENT)
-    {
-        return ZDB_COLTYPE_INT;
-    }
-    
-    return type;
-}
-
-int ZdbTypesCompatible(ZdbColumnType type1, ZdbColumnType type2)
-{
-    return ZdbGetCanonicalType(type1) == ZdbGetCanonicalType(type2);
-}
-
 void ZdbPrintColumn(ZdbColumn* column)
 {
     printf("%s", column->name);
 }
 
-void ZdbPrintColumnValue(ZdbColumnType type, ZdbColumnVal* value)
+void ZdbPrintColumnValue(ZdbType* type, ZdbColumnVal* value)
 {
-    ZdbColumnType canonicalType = ZdbGetCanonicalType(type);
-    switch(canonicalType)
+    if (!ZdbTypeSupportsToString(type))
     {
-        case ZDB_COLTYPE_BOOLEAN:
-            printf("%s", value->boolVal? "TRUE" : "FALSE");
-            break;
-        case ZDB_COLTYPE_INT:
-            printf("%d", value->intVal);
-            break;
-        case ZDB_COLTYPE_FLOAT:
-            printf("%f", value->floatVal);
-            break;
-        case ZDB_COLTYPE_VARCHAR:
-            printf("%s", value->varcharVal);
-            break;
-        default:
-            printf("ERROR IN PRINTCOLUMNVALUE\n");
-            break;
+        /* Print something to indicate there's something there, but we can't print it */
+        printf("%s", "{}");
+        return;
     }
+    
+    size_t length = 0;
+    ZdbTypeToString(type, value, &length, NULL);
+    if (length == 0)
+    {
+        printf(" ");
+        return;
+    }
+    
+    char* s = malloc((length + 1) * sizeof(char));
+    ZdbResult result = ZdbTypeToString(type, value, &length, s);
+    if (result != ZDB_RESULT_SUCCESS)
+    {
+        printf("ERROR");
+        return;
+    }
+    
+    printf("%s", s);
+    free(s);
 }
 
 void ZdbPrintRow(ZdbRow* row, ZdbColumn** columns, int columnCount)

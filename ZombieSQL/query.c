@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "types.h"
+
 #include "query.h"
 
 
@@ -37,7 +39,7 @@ struct _ZdbRecordset
  */
 
 
-ZdbResult _getValue(ZdbRecordset* recordset, int column, ZdbColumnType type, void* value)
+ZdbResult _getValue(ZdbRecordset* recordset, int column, ZdbType* type, void* value)
 {
     if (column < 0 || column >= recordset->query->table->columnCount)
     {
@@ -45,7 +47,7 @@ ZdbResult _getValue(ZdbRecordset* recordset, int column, ZdbColumnType type, voi
         return ZDB_RESULT_ERR_INVALID_STATE;
     }
     
-    if (!ZdbTypesCompatible(type, recordset->query->table->columns[column]->type))
+    if (type != recordset->query->table->columns[column]->type)
     {
         /* Attempt to cast result to an incompatible type */
         return ZDB_RESULT_ERR_INVALID_CAST;
@@ -54,52 +56,34 @@ ZdbResult _getValue(ZdbRecordset* recordset, int column, ZdbColumnType type, voi
     ZdbRow* resultRow = recordset->query->table->rows[recordset->rowIndex];
     ZdbColumnVal *val = &resultRow->values[column];
     
-    switch (ZdbGetCanonicalType(type))
-    {
-        case ZDB_COLTYPE_BOOLEAN:
-            *(int*)value = val->boolVal;
-            break;
-        case ZDB_COLTYPE_INT:
-            *(int*)value = val->intVal;
-            break;
-        case ZDB_COLTYPE_VARCHAR:
-            *(char**)value = val->varcharVal;
-            break;
-        case ZDB_COLTYPE_FLOAT:
-            *(float*)value = val->floatVal;
-            break;
-        default:
-            /* Did you forget to add a type case here? */
-            return ZDB_RESULT_ERR_INVALID_STATE;
-            break;
-    }
+    /* TODO: TEMPORARY */
+    if      (type == ZdbStandardTypes->booleanType)
+        *(int*)value = val->boolVal;
+    else if (type == ZdbStandardTypes->intType)
+        *(int*)value = val->intVal;
+    else if (type == ZdbStandardTypes->floatType)
+        *(float*)value = val->floatVal;
+    else if (type == ZdbStandardTypes->varcharType)
+        *(char**)value = val->varcharVal;
+    else
+        /* Did you forget to add a type case here? */
+        return ZDB_RESULT_ERR_INVALID_STATE;
     
     return ZDB_RESULT_SUCCESS;
 }
 
-int _compareValues(ZdbColumnType type, ZdbColumnVal* value1, ZdbColumnVal* value2, ZdbQueryConditionType conditionType)
+int _compareValues(ZdbType* type, ZdbColumnVal* value1, ZdbColumnVal* value2, ZdbQueryConditionType conditionType)
 {
-    switch(ZdbGetCanonicalType(type))
-    {
-        case ZDB_COLTYPE_BOOLEAN:
-            return value1->boolVal == value2->boolVal;
-        case ZDB_COLTYPE_INT:
-            return value1->intVal == value2->intVal;
-        case ZDB_COLTYPE_FLOAT:
-            return value1->floatVal == value2->floatVal;
-        case ZDB_COLTYPE_VARCHAR:
-            return !strcmp(value1->varcharVal, value2->varcharVal);
-        default:
-            /* Did you forget to add a type here? */
-            return 0;
-    }
+    int result = 0;
+    ZdbTypeCompare(type, value1, value2, &result);
+    return !result;
 }
 
 int _matchesQuery(ZdbRecordset* recordset)
 {
     ZdbColumnVal* value1 = NULL;
     ZdbColumnVal* value2 = NULL;
-    ZdbColumnType type;
+    ZdbType* type;
     
     switch(recordset->query->condition.type)
     {
@@ -143,13 +127,8 @@ ZdbResult ZdbQueryAddTable(ZdbQuery* query, ZdbTable* table)
     return ZDB_RESULT_SUCCESS;
 }
 
-ZdbResult ZdbQueryAddCondition(ZdbQuery* query, ZdbQueryConditionType type, int column, ZdbColumnType valueType, ZdbColumnVal value)
+ZdbResult ZdbQueryAddCondition(ZdbQuery* query, ZdbQueryConditionType type, int column, ZdbType* valueType, ZdbColumnVal value)
 {
-    if (value.ignored)
-    {
-        /* Can't ignore a condition value */
-        return ZDB_RESULT_ERR_INVALID_STATE;
-    }
     
     if (query->database == NULL || query->table == NULL)
     {
@@ -163,8 +142,8 @@ ZdbResult ZdbQueryAddCondition(ZdbQuery* query, ZdbQueryConditionType type, int 
         return ZDB_RESULT_ERR_INVALID_STATE;
     }
     
-    ZdbColumnType columnType = query->table->columns[column]->type;
-    if (!ZdbTypesCompatible(columnType, valueType))
+    ZdbType* columnType = query->table->columns[column]->type;
+    if (columnType != valueType)
     {
         /* The types do not match */
         return ZDB_RESULT_ERR_INVALID_STATE;
@@ -213,7 +192,7 @@ int ZdbQueryNextResult(ZdbRecordset* recordset)
 ZdbResult ZdbQueryGetInt(ZdbRecordset* recordset, int column, int* value)
 {
     int v;
-    ZdbResult result = _getValue(recordset, column, ZDB_COLTYPE_INT, &v);
+    ZdbResult result = _getValue(recordset, column, ZdbStandardTypes->intType, &v);
         
     if (result == ZDB_RESULT_SUCCESS)
     {
@@ -226,7 +205,7 @@ ZdbResult ZdbQueryGetInt(ZdbRecordset* recordset, int column, int* value)
 ZdbResult ZdbQueryGetBoolean(ZdbRecordset* recordset, int column, int* value)
 {
     int v;
-    ZdbResult result = _getValue(recordset, column, ZDB_COLTYPE_BOOLEAN, &v);
+    ZdbResult result = _getValue(recordset, column, ZdbStandardTypes->booleanType, &v);
      
     if (result == ZDB_RESULT_SUCCESS)
     {
@@ -239,7 +218,7 @@ ZdbResult ZdbQueryGetBoolean(ZdbRecordset* recordset, int column, int* value)
 ZdbResult ZdbQueryGetString(ZdbRecordset* recordset, int column, char** value)
 {
     char* v;
-    ZdbResult result = _getValue(recordset, column, ZDB_COLTYPE_VARCHAR, &v);
+    ZdbResult result = _getValue(recordset, column, ZdbStandardTypes->varcharType, &v);
     
     if (result == ZDB_RESULT_SUCCESS)
     {
@@ -252,7 +231,7 @@ ZdbResult ZdbQueryGetString(ZdbRecordset* recordset, int column, char** value)
 ZdbResult ZdbQueryGetFloat(ZdbRecordset* recordset, int column, float* value)
 {
     float v;
-    ZdbResult result = _getValue(recordset, column, ZDB_COLTYPE_FLOAT, &v);
+    ZdbResult result = _getValue(recordset, column, ZdbStandardTypes->floatType, &v);
     
     if (result == ZDB_RESULT_SUCCESS)
     {
