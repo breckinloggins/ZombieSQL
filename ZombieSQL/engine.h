@@ -26,26 +26,19 @@ typedef struct _ZdbType ZdbType;
 
 typedef struct
 {
-    union 
-    {
-        int boolVal;
-        int intVal;
-        float floatVal;
-        char varcharVal[ZDB_LIMIT_VARCHAR];        
-    };
-} ZdbColumnVal;
-
-typedef struct
-{
     ZdbType* type;
     char name[ZDB_LIMIT_VARCHAR];
     int autoincrement;                     /* Whether values autoincrement */
-    ZdbColumnVal* lastInsertedValue;       /* Used mainly to track the last autoincrement number */
+    void* lastInsertedValue;       /* Used mainly to track the last autoincrement number */
 } ZdbColumn;
 
 typedef struct
 {
-    ZdbColumnVal values[ZDB_LIMIT_COLUMNS];
+    void* data;
+    
+    /* Insert additional row properties here */
+    
+    char _rowdata[0];               /* This MUST be the last member of the struct */
 } ZdbRow;
 
 
@@ -74,12 +67,14 @@ ZdbResult ZdbEngineCreateTable(ZdbDatabase* db, char* name, int columnCount, Zdb
 ZdbResult ZdbEngineCreateDB(char* name, ZdbDatabase** database);
 ZdbResult ZdbEngineDropTable(ZdbTable* table);
 ZdbResult ZdbEngineDropDB(ZdbDatabase* db);
-ZdbResult ZdbEngineInsertRow(ZdbTable* table, int columnCount, ZdbColumnVal* values, ZdbRow** row);
+ZdbResult ZdbEngineInsertRow(ZdbTable* table, int columnCount, ZdbRow** row);
+ZdbResult ZdbEngineUpdateRowValues(ZdbTable* table, ZdbRow* row, int valueCount, ...);
+ZdbResult ZdbEngineGetValue(ZdbTable* table, ZdbRow* row, int column, void** value);
 
 /* TO BE RENAMED AND MOVED TO DESCRIBE MODULE */
 void ZdbPrintColumn(ZdbColumn* column);
-void ZdbPrintColumnValue(ZdbType* type, ZdbColumnVal* value);
-void ZdbPrintRow(ZdbRow* row, ZdbColumn** columns, int columnCount);
+void ZdbPrintColumnValue(ZdbType* type, void* value);
+void ZdbPrintRow(ZdbTable* table, ZdbRow* row, int columnCount);
 void ZdbPrintTable(ZdbTable* table);
 void ZdbPrintDatabase(ZdbDatabase* db);
 /* ... */

@@ -16,7 +16,7 @@ extern struct _ZdbStandardTypes* ZdbStandardTypes;
 
 #define COMPARISON_FN(type) _compare##type
 #define DECLARE_COMPARISON_FN(type)                                     \
-    ZdbResult _compare##type(void* value1, void* value2, int* result)  \
+    ZdbResult _compare##type(void* value1, void* value2, int* result)   \
     {                                                                   \
         if (*(type*)value1 == *(type*)value2)                           \
             *(type*)result = 0;                                         \
@@ -75,10 +75,13 @@ extern struct _ZdbStandardTypes* ZdbStandardTypes;
     }
 
 #define NEXTVALUE_FN(type) _nextvalue##type
-#define DECLARE_NEXTVALUE_FN(type)                                      \
+#define DECLARE_NEXTVALUE_FN(type, first)                               \
     ZdbResult _nextvalue##type(void* value, void* nextValue)            \
     {                                                                   \
-        *(type*)nextValue = (*(type*)value)++;                          \
+        if (!value)                                                     \
+            *(type*)nextValue = first;                                  \
+        else                                                            \
+            *(type*)nextValue = (*(type*)value)+1;                      \
                                                                         \
         return ZDB_RESULT_SUCCESS;                                      \
     }
@@ -123,6 +126,7 @@ ZdbResult _tostringvarchar(void* value, size_t* length, char* result)
     {
         *length = snprintf(result, (*length) + 1, "%s", (char*)value );
     }
+    
     return ZDB_RESULT_SUCCESS;
 }
 /* End VARCHAR functions */
@@ -141,13 +145,13 @@ DECLARE_COMPARISON_FN(int)
 DECLARE_SIZEOF_FN(int)
 DECLARE_FROMSTRING_FN(int, atoi, 0)
 DECLARE_TOSTRING_FN(int, "%d")
-DECLARE_NEXTVALUE_FN(int)
+DECLARE_NEXTVALUE_FN(int, 0)
 
 DECLARE_COMPARISON_FN(float)
 DECLARE_SIZEOF_FN(float)
 DECLARE_FROMSTRING_FN(float, atof, 0.0f)
 DECLARE_TOSTRING_FN(float, "%f")
-DECLARE_NEXTVALUE_FN(float)
+DECLARE_NEXTVALUE_FN(float, 0.0f)
 
 
 
@@ -192,6 +196,19 @@ ZdbResult ZdbTypeCreate(const char* name, ZdbTypeCompareFn compareFn, ZdbTypeSiz
     t->nextValue = nextValueFn;
     
     *newType = t;
+    return ZDB_RESULT_SUCCESS;
+}
+
+ZdbResult ZdbTypeGetName(ZdbType* type, const char* result)
+{
+    if (type == NULL)
+    {
+        /* Must pass a valid type */
+        return ZDB_RESULT_ERR_INVALID_STATE;
+    }
+    
+    result = type->name;
+    
     return ZDB_RESULT_SUCCESS;
 }
 
@@ -319,12 +336,14 @@ ZdbResult ZdbTypeNextValue(ZdbType* type, void* value, void* nextValue)
         return ZDB_RESULT_ERR_UNSUPPORTED;
     }
     
-    if (value == NULL || nextValue == NULL)
+    if (nextValue == NULL)
     {
-        /* value and nextValue parameters must be valid */
+        /* nextValue parameters must be valid */
         return ZDB_RESULT_ERR_INVALID_STATE;
     }
     
     /* Type object performs the actual incrementing */
-    return type->nextValue(value, nextValue);
+    ZdbResult result = type->nextValue(value, nextValue);
+    
+    return result;
 }

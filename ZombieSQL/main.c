@@ -12,19 +12,23 @@
 
 #include "zdb.h"
 
-void CreateTestRow(ZdbTable* table, char* name, int age, float salary, int active)
+/* MAJOR HACK - REMOVE ME!!! */
+int id;
+int age;
+char name[255];
+float salary;
+int active;
+
+void CreateTestRow(ZdbTable* table, char* name, char* age, char* salary, char* active)
 {
-    ZdbColumnVal* values = malloc(5*sizeof(ZdbColumnVal));
-    values[0].intVal = 0;
-    strcpy(values[1].varcharVal, name);
-    values[2].intVal = age;
-    values[3].floatVal = salary;
-    values[4].boolVal = active;
-    
     ZdbRow* r;
-    if (ZdbEngineInsertRow(table, 5, values, &r) != ZDB_RESULT_SUCCESS)
+    if (ZdbEngineInsertRow(table, 5, &r) != ZDB_RESULT_SUCCESS)
     {
         printf("ERROR inserting row\n");
+    }
+    else if (ZdbEngineUpdateRowValues(table, r, 5, NULL, name, age, salary, active) != ZDB_RESULT_SUCCESS)
+    {
+        printf("ERROR setting row values\n");
     }
 }
 
@@ -43,10 +47,10 @@ ZdbDatabase* CreateTestDatabase()
     ZdbTable* t = NULL;
     ZdbEngineCreateTable(db, "Employees", 5, columns, &t);
     
-    CreateTestRow(t, "Breckin", 30, 34000.0, 1);
-    CreateTestRow(t, "Bob", 22, 15600.0, 1);
-    CreateTestRow(t, "Jane", 45, 45000.0, 1);
-    CreateTestRow(t, "John", 35, 95600.0, 0);
+    CreateTestRow(t, "Breckin", "30", "34000.0", "1");
+    CreateTestRow(t, "Bob", "22", "15600.0", "1");
+    CreateTestRow(t, "Jane", "45", "45000.0", "1");
+    CreateTestRow(t, "John", "35", "95600.0", "0");
     
     return db;
 }
@@ -237,7 +241,7 @@ void TestBasicQuery(ZdbDatabase* db)
     PrintQueryResults(rs);
 }
 
-void TestOneConditionQuery(ZdbDatabase* db, int column, ZdbQueryConditionType queryType, ZdbColumnVal value, ZdbType* valueType)
+void TestOneConditionQuery(ZdbDatabase* db, int column, ZdbQueryConditionType queryType, void* value, ZdbType* valueType)
 {
     ZdbQuery* q = NULL;
     if (ZdbQueryCreate(db, &q) != ZDB_RESULT_SUCCESS)
@@ -299,26 +303,25 @@ int main (int argc, const char * argv[])
     
     printf("\nTesting Equality Condition...\n");
     
-    ZdbColumnVal value;
     
-    value.intVal = 1;
-    TestOneConditionQuery(db, 0, ZDB_QUERY_CONDITION_EQ, value, ZdbStandardTypes->intType);
+    id = 1;
+    TestOneConditionQuery(db, 0, ZDB_QUERY_CONDITION_EQ, &id, ZdbStandardTypes->intType);
     
-    strcpy(value.varcharVal, "Jane");
-    TestOneConditionQuery(db, 1, ZDB_QUERY_CONDITION_EQ, value, ZdbStandardTypes->varcharType);
+    strcpy(name, "Jane");
+    TestOneConditionQuery(db, 1, ZDB_QUERY_CONDITION_EQ, &name, ZdbStandardTypes->varcharType);
     
-    value.intVal = 30;
-    TestOneConditionQuery(db, 2, ZDB_QUERY_CONDITION_EQ, value, ZdbStandardTypes->intType);
+    age = 30;
+    TestOneConditionQuery(db, 2, ZDB_QUERY_CONDITION_EQ, &age, ZdbStandardTypes->intType);
     
-    value.floatVal = 34000.00f;
-    TestOneConditionQuery(db, 3, ZDB_QUERY_CONDITION_EQ, value, ZdbStandardTypes->floatType);
+    salary = 34000.00f;
+    TestOneConditionQuery(db, 3, ZDB_QUERY_CONDITION_EQ, &salary, ZdbStandardTypes->floatType);
     
-    value.boolVal = 0;
-    TestOneConditionQuery(db, 4, ZDB_QUERY_CONDITION_EQ, value, ZdbStandardTypes->booleanType);
+    active = 0;
+    TestOneConditionQuery(db, 4, ZDB_QUERY_CONDITION_EQ, &active, ZdbStandardTypes->booleanType);
     
     /* Tests multiple results */
-    value.boolVal = 1;
-    TestOneConditionQuery(db, 4, ZDB_QUERY_CONDITION_EQ, value, ZdbStandardTypes->booleanType);
+    active = 1;
+    TestOneConditionQuery(db, 4, ZDB_QUERY_CONDITION_EQ, &active, ZdbStandardTypes->booleanType);
     
     ZdbEngineDropDB(db);
     

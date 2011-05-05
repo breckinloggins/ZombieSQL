@@ -135,15 +135,33 @@ Before we implement the full type system, we'll start by replacing the simpler o
 
 Now that the old type system switch code has been replaced by the new type system code, we need to implement the varchar type to support our test data.
 
+>>>>63eefa9<<<<
+
+Implement rest of type system including NextValue for autoincrement and sizeof for row sizes.  Get rid of ColumnVal struct.  The idea is that now a row will be a contiguous array of bytes.  The engine will use the sizeof information from each type to extract the appropriate part of the row and cast it to the appropriate type value.  This will let us get rid of the ColumnVal union, which will save a LOT of space and reduce complexity.
+
+We now need a different way to insert row values.  It seems like the best idea is to implement a VARARGS function that lets us update the values.  Even better, calling this the "UpdateValues" function will take us one step closer to supporting update functionality.  Also, since we're going to be reading the values from strings anyway, 
+    we'll make life easier on ourselves by assuming all arguments to the UpdateValues
+    function are strings and call each type's FromValue function.
+
+We make a note to ourselves that we should probably memoize the results of a couple of our helper functions, since they will be called lots of times and their information doesn't tend to change unless the table is ALTERed.
+
+We notice now that the query API doesn't match the Engine API.  The query API takes void* values from actual types, whereas the engine API takes strings and converts them internally.  We make a note to adjust the query API to do the same.  In the meantime, we're going to have to do a HUGE hack in main by creating global variables for the query conditions, because otherwise we're passing in pointers to variables on the stack and storing them.  BAD.
+
+But now we've fully implemented our new type system.  This will give us MUCH greater flexibility in the future.
+
 >>>>COMMIT<<<<
 
-Implement rest of type system including NextValue for autoincrement and sizeof for row sizes.  Get rid of ColumnVal struct.
-
+Update query API to take strings instead of void*.
 Our test cases are missing an explicit test of the autoincrement functionality, so we need to add that.
+UpdateRow support
 Expand the Results to include rows affected
 Strengthen query tests to test for expected number of returned rows
+
+>>>>COMMIT<<<<
+
 COUNT(*) support
 Column selection
+Make sure all the comments that denote error strings are prefixed with ERROR so we can search for them later
 Better error messages in the result struct
 Support for basic query parameters
 

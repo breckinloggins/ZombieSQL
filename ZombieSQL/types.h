@@ -46,6 +46,8 @@ ZdbResult ZdbTypeInitialize();  /* Sets up the standard types */
 
 ZdbResult ZdbTypeCreate(const char* name, ZdbTypeCompareFn compareFn, ZdbTypeSizeFn sizeFn, ZdbTypeFromStringFn fromStringFn, ZdbTypeToStringFn toStringFn, ZdbTypeNextValueFn nextValueFn, ZdbType** newType);
 
+ZdbResult ZdbTypeGetName(ZdbType* type, const char* result);
+
 ZdbResult ZdbTypeCompare(ZdbType* type, void* value1, void* value2, int* result);
 
 ZdbResult ZdbTypeSizeof(ZdbType* type, void* value, size_t* result);

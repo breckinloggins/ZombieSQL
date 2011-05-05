@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include "engine.h"
 #include "types.h"
@@ -30,6 +31,35 @@ ZdbResult _insertTableIntoDatabase(ZdbDatabase* db, ZdbTable* table)
     db->freeTablesLeft--;
     
     return ZDB_RESULT_SUCCESS;
+}
+
+size_t _calculateRowSize(int columnCount, ZdbColumn** columns)
+{
+    /* TODO: Should memoize this */
+    size_t size = 0;
+    for (int i = 0; i < columnCount; i++)
+    {
+        size_t thisSize = 0;
+        ZdbTypeSizeof(columns[i]->type, NULL, &thisSize);
+        size += thisSize;
+    }
+    
+    return size;
+}
+
+size_t _calculateRowOffset(ZdbColumn** columns, int column)
+{
+    /* TODO: Should memoize this */
+    size_t offset = 0;
+    for (int i = 1; i <= column; i++)
+    {
+        size_t thisSize = 0;
+        ZdbTypeSizeof(columns[i-1]->type, NULL, &thisSize);
+        
+        offset += thisSize;
+    }
+    
+    return offset;
 }
 
 /*
@@ -124,32 +154,54 @@ ZdbResult ZdbEngineDropDB(ZdbDatabase* db)
     return ZDB_RESULT_SUCCESS;
 }
 
-ZdbResult ZdbEngineInsertRow(ZdbTable* table, int columnCount, ZdbColumnVal* values, ZdbRow** row)
+ZdbResult ZdbEngineUpdateRowValues(ZdbTable* table, ZdbRow* row, int valueCount, ...)
 {
-    int i;
-    ZdbRow* r = malloc(sizeof(ZdbRow));
-    
-    for (i = 0; i < columnCount; i++)
-    {
+    va_list argp;
+	va_start(argp, valueCount);
+	
+	for (int i = 0; i < valueCount; i++)
+	{
+        void* value = row->data + _calculateRowOffset(table->columns, i);
+        char* str = va_arg(argp, char*);
+        
         if (table->columns[i]->autoincrement)
         {
-            /* TODO: Use ZdbTypeNextValue() */
-            int lastValue = -1;
-            if (table->columns[i]->lastInsertedValue != NULL)
+            /* Automatically incrementing column */
+            if (str != NULL)
             {
-                lastValue = table->columns[i]->lastInsertedValue->intVal;
+                /* Cannot specify explicit value for autoincrement columns */
+                return ZDB_RESULT_ERR_AUTOINCREMENT;
             }
             
-            values[i].intVal = ++lastValue;
-            r->values[i] = values[i];
+            ZdbResult result = ZdbTypeNextValue(table->columns[i]->type, table->columns[i]->lastInsertedValue, value);
+            if (result != ZDB_RESULT_SUCCESS)
+            {
+                return result;
+            }
         }
         else
         {
-            r->values[i] = values[i];
+            /* Normal column value */
+            ZdbResult result = ZdbTypeFromString(table->columns[i]->type, str, value);
+            if (result != ZDB_RESULT_SUCCESS)
+            {
+                return result;
+            }
         }
         
-        table->columns[i]->lastInsertedValue = &(values[i]);
-    }
+        table->columns[i]->lastInsertedValue = value;
+	}
+	
+	va_end(argp);
+
+    
+    return ZDB_RESULT_SUCCESS;
+}
+
+ZdbResult ZdbEngineInsertRow(ZdbTable* table, int columnCount, ZdbRow** row)
+{
+    ZdbRow* r = calloc(1, sizeof(ZdbRow) + _calculateRowSize(columnCount, table->columns));
+    r->data = r->_rowdata;
     
     if (table->freeRowsLeft == 0)
     {
@@ -165,12 +217,26 @@ ZdbResult ZdbEngineInsertRow(ZdbTable* table, int columnCount, ZdbColumnVal* val
     return ZDB_RESULT_SUCCESS;
 }
 
+ZdbResult ZdbEngineGetValue(ZdbTable* table, ZdbRow* row, int column, void** value)
+{
+    if (table == NULL || row == NULL || value == NULL)
+    {
+        /* Invalid parameters to call */
+        return ZDB_RESULT_ERR_INVALID_STATE;
+    }
+    
+    size_t offset = _calculateRowOffset(table->columns, column);
+    *value = row->data + offset;
+    
+    return ZDB_RESULT_SUCCESS;
+}
+
 void ZdbPrintColumn(ZdbColumn* column)
 {
     printf("%s", column->name);
 }
 
-void ZdbPrintColumnValue(ZdbType* type, ZdbColumnVal* value)
+void ZdbPrintColumnValue(ZdbType* type, void* value)
 {
     if (!ZdbTypeSupportsToString(type))
     {
@@ -199,12 +265,21 @@ void ZdbPrintColumnValue(ZdbType* type, ZdbColumnVal* value)
     free(s);
 }
 
-void ZdbPrintRow(ZdbRow* row, ZdbColumn** columns, int columnCount)
+void ZdbPrintRow(ZdbTable* table, ZdbRow* row, int columnCount)
 {
     int i;
     for (i = 0; i < columnCount; i++)
     {
-        ZdbPrintColumnValue(columns[i]->type, &row->values[i]);
+        void* value;
+        if (ZdbEngineGetValue(table, row, i, &value) != ZDB_RESULT_SUCCESS)
+        {
+            printf("ERROR");
+        }
+        else
+        {
+            ZdbPrintColumnValue(table->columns[i]->type, value);
+        }
+        
         printf("\t");
     }
 }
@@ -224,7 +299,7 @@ void ZdbPrintTable(ZdbTable* table)
     
     for (i = 0; i < table->rowCount; i++)
     {
-        ZdbPrintRow(table->rows[i], table->columns, table->columnCount);
+        ZdbPrintRow(table, table->rows[i], table->columnCount);
         printf("\n");
     }
 }
