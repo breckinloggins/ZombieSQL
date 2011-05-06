@@ -68,7 +68,9 @@ ZdbResult ZdbEngineCreateDB(char* name, ZdbDatabase** database);
 ZdbResult ZdbEngineDropTable(ZdbTable* table);
 ZdbResult ZdbEngineDropDB(ZdbDatabase* db);
 ZdbResult ZdbEngineInsertRow(ZdbTable* table, int columnCount, ZdbRow** row);
-ZdbResult ZdbEngineUpdateRowValues(ZdbTable* table, ZdbRow* row, int valueCount, ...);
+ZdbResult ZdbEngineGetRowDataSize(ZdbTable* table, int columnCount, size_t* size);
+ZdbResult ZdbEngineUpdateRowValues(ZdbTable* table, ZdbRow* row, int valueCount, void** values);
+ZdbResult ZdbEngineUpdateRow(ZdbTable* table, ZdbRow* row, int valueCount, ...);
 ZdbResult ZdbEngineGetValue(ZdbTable* table, ZdbRow* row, int column, void** value);
 
 /* TO BE RENAMED AND MOVED TO DESCRIBE MODULE */

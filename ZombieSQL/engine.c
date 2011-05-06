@@ -154,20 +154,28 @@ ZdbResult ZdbEngineDropDB(ZdbDatabase* db)
     return ZDB_RESULT_SUCCESS;
 }
 
-ZdbResult ZdbEngineUpdateRowValues(ZdbTable* table, ZdbRow* row, int valueCount, ...)
+ZdbResult ZdbEngineUpdateRowValues(ZdbTable* table, ZdbRow* row, int valueCount, void** values)
 {
-    va_list argp;
-	va_start(argp, valueCount);
+    int newRow = row->data == NULL;
+    if (newRow)
+    {
+        row->data = row->_rowdata;
+    }
 	
 	for (int i = 0; i < valueCount; i++)
 	{
         void* value = row->data + _calculateRowOffset(table->columns, i);
-        char* str = va_arg(argp, char*);
         
         if (table->columns[i]->autoincrement)
         {
+            if (!newRow)
+            {
+                /* We don't auto increment on an existing row */
+                continue ;
+            }
+            
             /* Automatically incrementing column */
-            if (str != NULL)
+            if (values[i] != NULL)
             {
                 /* Cannot specify explicit value for autoincrement columns */
                 return ZDB_RESULT_ERR_AUTOINCREMENT;
@@ -182,7 +190,7 @@ ZdbResult ZdbEngineUpdateRowValues(ZdbTable* table, ZdbRow* row, int valueCount,
         else
         {
             /* Normal column value */
-            ZdbResult result = ZdbTypeFromString(table->columns[i]->type, str, value);
+            ZdbResult result = ZdbTypeCopy(table->columns[i]->type, value, values[i]);
             if (result != ZDB_RESULT_SUCCESS)
             {
                 return result;
@@ -191,9 +199,65 @@ ZdbResult ZdbEngineUpdateRowValues(ZdbTable* table, ZdbRow* row, int valueCount,
         
         table->columns[i]->lastInsertedValue = value;
 	}
-	
-	va_end(argp);
+    
+    return ZDB_RESULT_SUCCESS;
+}
 
+ZdbResult ZdbEngineUpdateRow(ZdbTable* table, ZdbRow* row, int valueCount, ...)
+{
+    va_list argp;
+	va_start(argp, valueCount);
+    
+    size_t rowSize;
+    if (ZdbEngineGetRowDataSize(table, table->columnCount, &rowSize) != ZDB_RESULT_SUCCESS)
+    {
+        /* Could not calculate the row size */
+        return ZDB_RESULT_ERR_INVALID_STATE;
+    }
+    
+    void** values = calloc(valueCount, sizeof(void*));
+    void* valueData = calloc(1, rowSize);
+    
+    for (int i = 0; i < valueCount; i++)
+    {
+        char* str = va_arg(argp, char*);
+        
+        if (str != NULL)
+        {
+            /* Normal column value */
+            ZdbResult result = ZdbTypeFromString(table->columns[i]->type, str, valueData + _calculateRowOffset(table->columns, i));
+            if (result != ZDB_RESULT_SUCCESS)
+            {
+                return result;
+            }
+            
+            values[i] = valueData + _calculateRowOffset(table->columns, i);
+        }
+        else
+        {
+            values[i] = NULL;
+        }
+    }
+    
+    ZdbResult result = ZdbEngineUpdateRowValues(table, row, valueCount, values);
+    
+    free(values);
+    free(valueData);
+    	
+	va_end(argp);
+    
+    return result;
+}
+
+ZdbResult ZdbEngineGetRowDataSize(ZdbTable* table, int columnCount, size_t* size)
+{
+    if (table == NULL)
+    {
+        /* Need a table definition */
+        return ZDB_RESULT_ERR_INVALID_STATE;
+    }
+    
+    *size = _calculateRowSize(columnCount, table->columns);
     
     return ZDB_RESULT_SUCCESS;
 }
@@ -201,7 +265,6 @@ ZdbResult ZdbEngineUpdateRowValues(ZdbTable* table, ZdbRow* row, int valueCount,
 ZdbResult ZdbEngineInsertRow(ZdbTable* table, int columnCount, ZdbRow** row)
 {
     ZdbRow* r = calloc(1, sizeof(ZdbRow) + _calculateRowSize(columnCount, table->columns));
-    r->data = r->_rowdata;
     
     if (table->freeRowsLeft == 0)
     {

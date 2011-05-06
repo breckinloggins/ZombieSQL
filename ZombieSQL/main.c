@@ -26,7 +26,7 @@ void CreateTestRow(ZdbTable* table, char* name, char* age, char* salary, char* a
     {
         printf("ERROR inserting row\n");
     }
-    else if (ZdbEngineUpdateRowValues(table, r, 5, NULL, name, age, salary, active) != ZDB_RESULT_SUCCESS)
+    else if (ZdbEngineUpdateRow(table, r, 5, NULL, name, age, salary, active) != ZDB_RESULT_SUCCESS)
     {
         printf("ERROR setting row values\n");
     }
@@ -78,6 +78,60 @@ void PrintQueryResults(ZdbRecordset* rs)
                salary,
                active? "ACTIVE" : "TERMINATED");
     }
+}
+
+int TestTypeCopyValue()
+{
+    int i1, i2;
+    float f1, f2;
+    int b1, b2;
+    
+    char s1[ZDB_LIMIT_VARCHAR], s2[ZDB_LIMIT_VARCHAR];
+    
+    printf("Testing Type CopyValue functions...\n");
+    
+    printf("\tint... ");
+    i1 = 10; i2 = 0;
+    ZdbTypeCopy(ZdbStandardTypes->intType, &i2, &i1);
+    if (i2 != 10)
+    {
+        printf("FAIL (i2 is %d, should be %d)\n", i2, i1);
+        return 0;
+    }
+    printf("PASS\n");
+
+    printf("\tfloat... ");
+    f1 = 11.2; f2 = 0;
+    ZdbTypeCopy(ZdbStandardTypes->floatType, &f2, &f1);
+    if (abs(f2 - f1) > 0.1)
+    {
+        printf("FAIL (f2 is %f, should be %f)\n", f2, f1);
+        return 0;
+    }
+    printf("PASS\n");
+    
+    printf("\tboolean... ");
+    b1 = 1; b2 = 0;
+    ZdbTypeCopy(ZdbStandardTypes->booleanType, &b2, &b1);
+    if (!b2)
+    {
+        printf("FAIL (b2 is %d, should be %d)\n", b2, b1);
+        return 0;
+    }
+    printf("PASS\n");
+    
+    printf("\tvarchar... ");
+    strcpy(s1, "foo"), strcpy(s2, "");
+    ZdbTypeCopy(ZdbStandardTypes->varcharType, &s2, &s1);
+    if (strcmp(s2, "foo"))
+    {
+        printf("FAIL (s2 is %s, should be %s)\n", s2, s1);
+        return 0;
+    }
+    printf("PASS\n");
+    
+    
+    return 1; /* FIXME */
 }
 
 int TestTypeSystem()
@@ -197,8 +251,6 @@ int TestTypeSystem()
         printf("ToString returned invalid value\n");
         return 0;
     }
-
-    return 1;
     
     // Test Next Value
     a = 42;
@@ -213,6 +265,14 @@ int TestTypeSystem()
     {
         printf("Next value returned an invalid value\n");
     }
+    
+    if (!TestTypeCopyValue())
+    {
+        printf("Type system copy value failed\n");
+        return 0;
+    }
+    
+    return 1;
 }
 
 void TestBasicQuery(ZdbDatabase* db)
@@ -274,6 +334,116 @@ void TestOneConditionQuery(ZdbDatabase* db, int column, ZdbQueryConditionType qu
    
 }
 
+void UpdateRowTestHelper(const char* testName, ZdbDatabase* db, int table, int queryColumn, void* queryValue, int updateColumn, void* updateValue)
+{
+    /* Most of this code will likely turn into the Update command code */
+    
+    ZdbQuery* q;
+    ZdbRecordset* rs;
+    ZdbQueryCreate(db, &q);
+    
+    ZdbType* queryColumnType = db->tables[table]->columns[queryColumn]->type;
+    ZdbType* updateColumnType = db->tables[table]->columns[updateColumn]->type;
+    
+    /* Get some names of things to make diagnostic messages less painful */
+    char queryValueString[ZDB_LIMIT_VARCHAR], tableName[ZDB_LIMIT_VARCHAR], columnName[ZDB_LIMIT_VARCHAR], originalValueString[ZDB_LIMIT_VARCHAR], updateValueString[ZDB_LIMIT_VARCHAR];
+    
+    size_t length = ZDB_LIMIT_VARCHAR;
+    ZdbTypeToString(queryColumnType, queryValue, &length, queryValueString);
+    strcpy(tableName, db->tables[table]->name);
+    strcpy(columnName, db->tables[table]->columns[updateColumn]->name);
+    length = ZDB_LIMIT_VARCHAR;
+    ZdbTypeToString(updateColumnType, updateValue, &length, updateValueString);
+    
+    printf("%s - Testing update of %s(%s): ", testName, tableName, columnName);
+    
+    ZdbQueryAddTable(q, db->tables[table]);
+    ZdbQueryAddCondition(q, ZDB_QUERY_CONDITION_EQ, queryColumn, queryColumnType, queryValue);
+    ZdbQueryExecute(q, &rs);
+    if (!ZdbQueryNextResult(rs))
+    {
+        printf("FAIL (No rows returned)\n");
+        return;
+    }
+    
+    /* Get the current value so we can print it*/
+    void* originalValue;
+    length = ZDB_LIMIT_VARCHAR;
+    ZdbQueryGetValue(rs, updateColumn, updateColumnType, &originalValue);
+    ZdbTypeToString(updateColumnType, originalValue, &length, originalValueString);
+    
+    printf("%s => %s ...", originalValueString, updateValueString);
+    
+    int rowId = -1;
+    
+    /* Collect the values for this row as a string */
+    void** values = calloc(db->tables[table]->columnCount, sizeof(void*));
+    
+    int i;
+    for (i = 0; i < db->tables[table]->columnCount; i++)
+    {
+        void* value;
+        ZdbType* thisType = db->tables[table]->columns[i]->type;
+        ZdbQueryGetValue(rs, i, thisType, &value);
+        
+        if (rowId == -1 && db->tables[table]->columns[i]->autoincrement)
+        {
+            /* For our test DB, we can assume the first auto increment column is an 
+              int row id that matches the row index */
+            rowId = *(int*)value;
+        }
+        
+        if (i == updateColumn)
+        {
+            values[i] = updateValue;
+        }
+        else
+        {
+            values[i] = value;
+        }
+    }
+    
+    
+    ZdbRow* row = db->tables[table]->rows[rowId];
+    ZdbEngineUpdateRowValues(db->tables[table], row, db->tables[table]->columnCount, values);
+    
+    void* updatedValue;
+    ZdbQueryGetValue(rs, updateColumn, updateColumnType, &updatedValue);
+    int result = 0;
+    ZdbTypeCompare(updateColumnType, updateValue, updatedValue, &result);
+    if (result != 0)
+    {
+        printf("FAILED (Updated value does not match)\n");
+    }
+    
+    free(values);
+    
+    printf("SUCCESS\n");
+}
+
+void TestBasicRowUpdate(ZdbDatabase* db)
+{
+    
+    /* Legal wants Bob's official name changed to Robert in the DB */
+    int i = 1;
+    UpdateRowTestHelper("UPDATE_BOB", db, 0, 0, &i, 1, "Robert");
+    
+    /* John gets rehired */
+    i = 3;
+    int active = 1;
+    UpdateRowTestHelper("UPDATE_JOHN", db, 0, 0, &i, 4, &active);
+    
+    /* Jane got older */
+    i = 2;
+    int age = 46;
+    UpdateRowTestHelper("UPDATE_JANE", db, 0, 0, &i, 2, &age);
+    
+    /* And I got a raise! */
+    i = 0;
+    float salary = 80000;
+    UpdateRowTestHelper("UPDATE_BRECKIN", db, 0, 0, &i, 3, &salary);
+    
+}
 
 
 int main (int argc, const char * argv[])
@@ -322,6 +492,8 @@ int main (int argc, const char * argv[])
     /* Tests multiple results */
     active = 1;
     TestOneConditionQuery(db, 4, ZDB_QUERY_CONDITION_EQ, &active, ZdbStandardTypes->booleanType);
+    
+    TestBasicRowUpdate(db);
     
     ZdbEngineDropDB(db);
     

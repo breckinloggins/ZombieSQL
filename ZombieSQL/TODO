@@ -149,12 +149,26 @@ We notice now that the query API doesn't match the Engine API.  The query API ta
 
 But now we've fully implemented our new type system.  This will give us MUCH greater flexibility in the future.
 
+>>>>702a8a6<<<<
+
+First thing we need to do is add a test to make sure we can use ZdbUpdateRowValues to 
+update an already existing row.  We quickly run into a snag: if the column is autoincrement, 
+updating the row increments the column AGAIN.  We need some way to test if there have been values inserted.  Easiest way seems to be to keep the data pointer set to NULL until the first time we call Update.
+
+To make testing easier we add an UpdateRowTestHelper function.  Doing this shows us how cumbersome it is to do the update manually, suggesting ideas for query and engine API simplification.  It also tells us we need a generic ZdbQueryGetValue() function since we don't know the types ahead of time.  Luckily, we already have one: _getValue()!
+
+Also we need a non var-args version of UpdateRow that takes real values.  The current string-based function will likely move.  To facilitate this as well as an upcoming change, the types module REALLY needs a copy value function.  Which we will need to test
+
+Looks like we need a "Command" module that's similar to the "Query" module.  The "Engine" module works with raw types and values, while the "Query" and "Command" modules work with strings.
+
 >>>>COMMIT<<<<
 
 Update query API to take strings instead of void*.
 Our test cases are missing an explicit test of the autoincrement functionality, so we need to add that.
-UpdateRow support
+Simple UpdateRow support
 Expand the Results to include rows affected
+Revamp error/result reporting
+Revamp test system
 Strengthen query tests to test for expected number of returned rows
 
 >>>>COMMIT<<<<
@@ -170,7 +184,7 @@ Support for more generic API in query results (e.g. GetColumnType(), GetNumColum
 Print out the results in a pretty fashion.  Replace the current Print() methods.  This will be the describe interface.
 
 
-Update support
+Update support with queries
 Alter table support
 Support for DBNULL in the data and querying (IS [NOT] NULL)
 Delete support. When deleting rows, we'll just mark them as deleted, then we'll have a COMPACT statement that goes in and cleans them up
@@ -195,4 +209,6 @@ Benchmarks against SQLite
 >>>>COMMIT<<<<<
 
 Improvements based on benchmarks (indexing?)
-
+Makefile for UNIX systems
+Basic security review and wrapup
+Annotated source (http://jashkenas.github.com/docco/ - jashkenas ROCKS) or rather, Rocco

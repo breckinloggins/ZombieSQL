@@ -33,6 +33,9 @@ typedef ZdbResult (*ZdbTypeCompareFn)(void* value1, void* value2, int* result);
 // ZdbTypeSizeFn - Given a value from a type, determines the amount of bytes are needed to store it.  If passed null, return the nominal or static size and ZDB_RESULT_SUCCESS.  Otherwise return ZDB_RESULT_INVALID_STATE to signal that it is impossible to determine a nominal or static size
 typedef ZdbResult (*ZdbTypeSizeFn)(void* value, size_t* result);
 
+// ZdbTypeCopyFn - Given a source and destination, copies the source value to the destination.  At this time.  Returns ZDB_RESULT_SUCCESS unless one of the parameters is NULL
+typedef ZdbResult (*ZdbTypeCopyFn)(void* dest, void* src);
+
 // ZdbTypeFromStringFn - Given a string, returns a value for the type from that string representation.  Always returns ZDB_RESULT_SUCCESS unless the value cannot be converted from the string
 typedef ZdbResult (*ZdbTypeFromStringFn)(const char* str, void* result);
 
@@ -44,13 +47,15 @@ typedef ZdbResult (*ZdbTypeNextValueFn)(void* value, void* nextValue);
 
 ZdbResult ZdbTypeInitialize();  /* Sets up the standard types */
 
-ZdbResult ZdbTypeCreate(const char* name, ZdbTypeCompareFn compareFn, ZdbTypeSizeFn sizeFn, ZdbTypeFromStringFn fromStringFn, ZdbTypeToStringFn toStringFn, ZdbTypeNextValueFn nextValueFn, ZdbType** newType);
+ZdbResult ZdbTypeCreate(const char* name, ZdbTypeCompareFn compareFn, ZdbTypeSizeFn sizeFn, ZdbTypeCopyFn copyFn, ZdbTypeFromStringFn fromStringFn, ZdbTypeToStringFn toStringFn, ZdbTypeNextValueFn nextValueFn, ZdbType** newType);
 
 ZdbResult ZdbTypeGetName(ZdbType* type, const char* result);
 
 ZdbResult ZdbTypeCompare(ZdbType* type, void* value1, void* value2, int* result);
 
 ZdbResult ZdbTypeSizeof(ZdbType* type, void* value, size_t* result);
+
+ZdbResult ZdbTypeCopy(ZdbType* type, void* dest, void* src);
 
 ZdbResult ZdbTypeFromString(ZdbType* type, const char* str, void* result);
 
@@ -60,6 +65,7 @@ ZdbResult ZdbTypeNextValue(ZdbType* type, void* value, void* nextValue);
 
 int ZdbTypeSupportsCompare(ZdbType* type);
 int ZdbTypeSupportsSizeof(ZdbType* type);
+int ZdbTypeSupportsCopy(ZdbType* type);
 int ZdbTypeSupportsFromString(ZdbType* type);
 int ZdbTypeSupportsToString(ZdbType* type);
 int ZdbTypeSupportsNextValue(ZdbType* type);

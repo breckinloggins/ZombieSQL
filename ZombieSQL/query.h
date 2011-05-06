@@ -27,6 +27,7 @@ ZdbResult ZdbQueryExecute(ZdbQuery* query, ZdbRecordset** recordset);
 
 int ZdbQueryNextResult(ZdbRecordset* recordset);
 
+ZdbResult ZdbQueryGetValue(ZdbRecordset* recordset, int column, ZdbType* type, void** value);
 ZdbResult ZdbQueryGetInt(ZdbRecordset* recordset, int column, int* value);
 ZdbResult ZdbQueryGetBoolean(ZdbRecordset* recordset, int column, int* value);
 ZdbResult ZdbQueryGetString(ZdbRecordset* recordset, int column, char** value);  /* Note: You do NOT own this string! */

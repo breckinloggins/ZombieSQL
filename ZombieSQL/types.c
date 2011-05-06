@@ -40,6 +40,19 @@ extern struct _ZdbStandardTypes* ZdbStandardTypes;
         return ZDB_RESULT_SUCCESS;                                      \
     }
 
+#define COPY_FN(type) _copy##type
+#define DECLARE_COPY_FN(type)                                           \
+    ZdbResult _copy##type(void* dest, void* src)                        \
+    {                                                                   \
+        if (dest == NULL || src == NULL)                                \
+        {                                                               \
+            return ZDB_RESULT_ERR_INVALID_STATE;                        \
+        }                                                               \
+                                                                        \
+        *(type*)dest = *(type*)src;                                     \
+        return ZDB_RESULT_SUCCESS;                                      \
+    }
+
 #define FROMSTRING_FN(type) _fromstring##type
 #define DECLARE_FROMSTRING_FN(type, fn, default)                        \
     ZdbResult _fromstring##type(const char* str, void* result)          \
@@ -101,6 +114,18 @@ ZdbResult _sizeofvarchar(void* value, size_t* result)
     return ZDB_RESULT_SUCCESS;
 }
 
+ZdbResult _copyvarchar(void* dest, void* src)
+{
+    if (dest == NULL || src == NULL)
+    {
+        return ZDB_RESULT_ERR_INVALID_STATE;
+    }
+    
+    strncpy((char*)dest, (char*)src, ZDB_LIMIT_VARCHAR);
+    
+    return ZDB_RESULT_SUCCESS;
+}
+
 ZdbResult _fromstringvarchar(const char* str, void* result)
 {
     if (str == NULL)
@@ -136,6 +161,7 @@ struct _ZdbType
     char name[ZDB_LIMIT_VARCHAR];
     ZdbTypeCompareFn compare;
     ZdbTypeSizeFn size;
+    ZdbTypeCopyFn copy;
     ZdbTypeFromStringFn fromString;
     ZdbTypeToStringFn toString;
     ZdbTypeNextValueFn nextValue;
@@ -143,12 +169,14 @@ struct _ZdbType
 
 DECLARE_COMPARISON_FN(int)
 DECLARE_SIZEOF_FN(int)
+DECLARE_COPY_FN(int)
 DECLARE_FROMSTRING_FN(int, atoi, 0)
 DECLARE_TOSTRING_FN(int, "%d")
 DECLARE_NEXTVALUE_FN(int, 0)
 
 DECLARE_COMPARISON_FN(float)
 DECLARE_SIZEOF_FN(float)
+DECLARE_COPY_FN(float)
 DECLARE_FROMSTRING_FN(float, atof, 0.0f)
 DECLARE_TOSTRING_FN(float, "%f")
 DECLARE_NEXTVALUE_FN(float, 0.0f)
@@ -161,18 +189,18 @@ ZdbResult ZdbTypeInitialize()
     
     ZdbStandardTypes = malloc(sizeof(struct _ZdbStandardTypes));
     
-    result |= ZdbTypeCreate("int", COMPARISON_FN(int), SIZEOF_FN(int), FROMSTRING_FN(int), TOSTRING_FN(int), NEXTVALUE_FN(int), &ZdbStandardTypes->intType);
+    result |= ZdbTypeCreate("int", COMPARISON_FN(int), SIZEOF_FN(int), COPY_FN(int), FROMSTRING_FN(int), TOSTRING_FN(int), NEXTVALUE_FN(int), &ZdbStandardTypes->intType);
     
-    result |= ZdbTypeCreate("float", COMPARISON_FN(float), SIZEOF_FN(float), FROMSTRING_FN(float), TOSTRING_FN(float), NEXTVALUE_FN(float), &ZdbStandardTypes->floatType);
+    result |= ZdbTypeCreate("float", COMPARISON_FN(float), SIZEOF_FN(float), COPY_FN(float), FROMSTRING_FN(float), TOSTRING_FN(float), NEXTVALUE_FN(float), &ZdbStandardTypes->floatType);
     
-    result |= ZdbTypeCreate("boolean", COMPARISON_FN(int), SIZEOF_FN(int), FROMSTRING_FN(int), TOSTRING_FN(int), NULL, &ZdbStandardTypes->booleanType);
+    result |= ZdbTypeCreate("boolean", COMPARISON_FN(int), SIZEOF_FN(int), COPY_FN(int), FROMSTRING_FN(int), TOSTRING_FN(int), NULL, &ZdbStandardTypes->booleanType);
     
-    result |= ZdbTypeCreate("varchar", _comparevarchar, _sizeofvarchar, _fromstringvarchar, _tostringvarchar, NULL, &ZdbStandardTypes->varcharType);
+    result |= ZdbTypeCreate("varchar", _comparevarchar, _sizeofvarchar, _copyvarchar, _fromstringvarchar, _tostringvarchar, NULL, &ZdbStandardTypes->varcharType);
     
     return result;
 }
 
-ZdbResult ZdbTypeCreate(const char* name, ZdbTypeCompareFn compareFn, ZdbTypeSizeFn sizeFn, ZdbTypeFromStringFn fromStringFn, ZdbTypeToStringFn toStringFn, ZdbTypeNextValueFn nextValueFn, ZdbType** newType)
+ZdbResult ZdbTypeCreate(const char* name, ZdbTypeCompareFn compareFn, ZdbTypeSizeFn sizeFn, ZdbTypeCopyFn copyFn, ZdbTypeFromStringFn fromStringFn, ZdbTypeToStringFn toStringFn, ZdbTypeNextValueFn nextValueFn, ZdbType** newType)
 {
     if (name == NULL || !strlen(name))
     {
@@ -191,6 +219,7 @@ ZdbResult ZdbTypeCreate(const char* name, ZdbTypeCompareFn compareFn, ZdbTypeSiz
     strncpy(t->name, name, ZDB_LIMIT_VARCHAR);
     t->compare = compareFn;
     t->size = sizeFn;
+    t->copy = copyFn;
     t->fromString = fromStringFn;
     t->toString = toStringFn;
     t->nextValue = nextValueFn;
@@ -272,6 +301,24 @@ ZdbResult ZdbTypeSizeof(ZdbType* type, void* value, size_t* result)
     
     /* Type object performs the actual size computation */
     return type->size(value, result);
+}
+
+ZdbResult ZdbTypeCopy(ZdbType* type, void* dest, void* src)
+{
+    if (type == NULL)
+    {
+        /* Can't perform copy without a type definition */
+        return ZDB_RESULT_ERR_INVALID_STATE;
+    }
+    
+    if (dest == NULL || src == NULL)
+    {
+        /* Dest and src arguments can't be null */
+        return ZDB_RESULT_ERR_INVALID_STATE;
+    }
+    
+    /* Type object performs the actual copy */
+    return type->copy(dest, src);
 }
 
 ZdbResult ZdbTypeFromString(ZdbType* type, const char* str, void* result)

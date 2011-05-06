@@ -39,31 +39,6 @@ struct _ZdbRecordset
  * Internal functions
  */
 
-
-ZdbResult _getValue(ZdbRecordset* recordset, int column, ZdbType* type, void** value)
-{
-    if (column < 0 || column >= recordset->query->table->columnCount)
-    {
-        /* Invalid column specified */
-        return ZDB_RESULT_ERR_INVALID_STATE;
-    }
-    
-    if (type != recordset->query->table->columns[column]->type)
-    {
-        /* Attempt to cast result to an incompatible type */
-        return ZDB_RESULT_ERR_INVALID_CAST;
-    }
-    
-    ZdbRow* resultRow = recordset->query->table->rows[recordset->rowIndex];
-    if (ZdbEngineGetValue(recordset->query->table, resultRow, column, value) != ZDB_RESULT_SUCCESS)
-    {
-        /* Error getting the value for this row */
-        return ZDB_RESULT_ERR_INVALID_STATE;
-    }
-    
-    return ZDB_RESULT_SUCCESS;
-}
-
 int _compareValues(ZdbType* type, void* value1, void* value2, ZdbQueryConditionType conditionType)
 {
     int result = 0;
@@ -86,7 +61,7 @@ int _matchesQuery(ZdbRecordset* recordset)
             value1 = recordset->query->condition.value;
             type = recordset->query->table->columns[recordset->query->condition.columnIndex]->type;
             
-            _getValue(recordset, recordset->query->condition.columnIndex, type, &value2);
+            ZdbQueryGetValue(recordset, recordset->query->condition.columnIndex, type, &value2);
             return _compareValues(type, value1, value2, recordset->query->condition.type);
     }
 }
@@ -181,10 +156,34 @@ int ZdbQueryNextResult(ZdbRecordset* recordset)
     return 1;
 }
 
+ZdbResult ZdbQueryGetValue(ZdbRecordset* recordset, int column, ZdbType* type, void** value)
+{
+    if (column < 0 || column >= recordset->query->table->columnCount)
+    {
+        /* Invalid column specified */
+        return ZDB_RESULT_ERR_INVALID_STATE;
+    }
+    
+    if (type != recordset->query->table->columns[column]->type)
+    {
+        /* Attempt to cast result to an incompatible type */
+        return ZDB_RESULT_ERR_INVALID_CAST;
+    }
+    
+    ZdbRow* resultRow = recordset->query->table->rows[recordset->rowIndex];
+    if (ZdbEngineGetValue(recordset->query->table, resultRow, column, value) != ZDB_RESULT_SUCCESS)
+    {
+        /* Error getting the value for this row */
+        return ZDB_RESULT_ERR_INVALID_STATE;
+    }
+    
+    return ZDB_RESULT_SUCCESS;
+}
+
 ZdbResult ZdbQueryGetInt(ZdbRecordset* recordset, int column, int* value)
 {
     int* v;
-    ZdbResult result = _getValue(recordset, column, ZdbStandardTypes->intType, (void**)&v);
+    ZdbResult result = ZdbQueryGetValue(recordset, column, ZdbStandardTypes->intType, (void**)&v);
         
     if (result == ZDB_RESULT_SUCCESS)
     {
@@ -197,7 +196,7 @@ ZdbResult ZdbQueryGetInt(ZdbRecordset* recordset, int column, int* value)
 ZdbResult ZdbQueryGetBoolean(ZdbRecordset* recordset, int column, int* value)
 {
     int* v;
-    ZdbResult result = _getValue(recordset, column, ZdbStandardTypes->booleanType, (void**)&v);
+    ZdbResult result = ZdbQueryGetValue(recordset, column, ZdbStandardTypes->booleanType, (void**)&v);
      
     if (result == ZDB_RESULT_SUCCESS)
     {
@@ -210,7 +209,7 @@ ZdbResult ZdbQueryGetBoolean(ZdbRecordset* recordset, int column, int* value)
 ZdbResult ZdbQueryGetString(ZdbRecordset* recordset, int column, char** value)
 {
     char* v;
-    ZdbResult result = _getValue(recordset, column, ZdbStandardTypes->varcharType, (void**)&v);
+    ZdbResult result = ZdbQueryGetValue(recordset, column, ZdbStandardTypes->varcharType, (void**)&v);
     
     if (result == ZDB_RESULT_SUCCESS)
     {
@@ -223,7 +222,7 @@ ZdbResult ZdbQueryGetString(ZdbRecordset* recordset, int column, char** value)
 ZdbResult ZdbQueryGetFloat(ZdbRecordset* recordset, int column, float* value)
 {
     float *v;
-    ZdbResult result = _getValue(recordset, column, ZdbStandardTypes->floatType, (void**)&v);
+    ZdbResult result = ZdbQueryGetValue(recordset, column, ZdbStandardTypes->floatType, (void**)&v);
     
     if (result == ZDB_RESULT_SUCCESS)
     {
