@@ -1,0 +1,163 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+COMPARISON_FN	types.c	/^#define COMPARISON_FN(/;"	d	file:
+COPY_FN	types.c	/^#define COPY_FN(/;"	d	file:
+CreateTestDatabase	main.c	/^ZdbDatabase* CreateTestDatabase()$/;"	f
+CreateTestRow	main.c	/^void CreateTestRow(ZdbTable* table, char* name, char* age, char* salary, char* active)$/;"	f
+DECLARE_COMPARISON_FN	types.c	/^#define DECLARE_COMPARISON_FN(/;"	d	file:
+DECLARE_COPY_FN	types.c	/^#define DECLARE_COPY_FN(/;"	d	file:
+DECLARE_FROMSTRING_FN	types.c	/^#define DECLARE_FROMSTRING_FN(/;"	d	file:
+DECLARE_MESSAGE	message.h	/^#define DECLARE_MESSAGE(/;"	d
+DECLARE_NEXTVALUE_FN	types.c	/^#define DECLARE_NEXTVALUE_FN(/;"	d	file:
+DECLARE_SIZEOF_FN	types.c	/^#define DECLARE_SIZEOF_FN(/;"	d	file:
+DECLARE_TOSTRING_FN	types.c	/^#define DECLARE_TOSTRING_FN(/;"	d	file:
+DEFINE_MESSAGE	message.c	/^#define DEFINE_MESSAGE(/;"	d	file:
+ENGINE_H	engine.h	/^#define ENGINE_H$/;"	d
+FROMSTRING_FN	types.c	/^#define FROMSTRING_FN(/;"	d	file:
+MESSAGE_H	message.h	/^#define MESSAGE_H$/;"	d
+MESSAGE_MAX_LENGTH	message.c	/^#define MESSAGE_MAX_LENGTH /;"	d	file:
+NEXTVALUE_FN	types.c	/^#define NEXTVALUE_FN(/;"	d	file:
+PrintQueryResults	main.c	/^void PrintQueryResults(ZdbRecordset* rs)$/;"	f
+QUERY_H	query.h	/^#define QUERY_H$/;"	d
+SIZEOF_FN	types.c	/^#define SIZEOF_FN(/;"	d	file:
+TOSTRING_FN	types.c	/^#define TOSTRING_FN(/;"	d	file:
+TYPES_H	types.h	/^#define TYPES_H$/;"	d
+TestBasicQuery	main.c	/^void TestBasicQuery(ZdbDatabase* db)$/;"	f
+TestBasicRowUpdate	main.c	/^void TestBasicRowUpdate(ZdbDatabase* db)$/;"	f
+TestOneConditionQuery	main.c	/^void TestOneConditionQuery(ZdbDatabase* db, int column, ZdbQueryConditionType queryType, const char* value, ZdbType* valueType)$/;"	f
+TestTypeCopyValue	main.c	/^int TestTypeCopyValue()$/;"	f
+TestTypeSystem	main.c	/^int TestTypeSystem()$/;"	f
+UpdateRowTestHelper	main.c	/^void UpdateRowTestHelper(const char* testName, ZdbDatabase* db, int table, int queryColumn, const char* queryValue, int updateColumn, void* updateValue)$/;"	f
+ZDB_H	zdb.h	/^#define ZDB_H$/;"	d
+ZDB_LIMIT_COLUMNS	engine.h	/^#define ZDB_LIMIT_COLUMNS /;"	d
+ZDB_LIMIT_VARCHAR	engine.h	/^#define ZDB_LIMIT_VARCHAR /;"	d
+ZDB_MESSAGE_TYPE_ERROR	message.h	/^#define ZDB_MESSAGE_TYPE_ERROR /;"	d
+ZDB_MESSAGE_TYPE_INFO	message.h	/^#define ZDB_MESSAGE_TYPE_INFO /;"	d
+ZDB_MESSAGE_TYPE_WARN	message.h	/^#define ZDB_MESSAGE_TYPE_WARN /;"	d
+ZDB_QUERY_CONDITION_EQ	query.h	/^#define ZDB_QUERY_CONDITION_EQ /;"	d
+ZDB_QUERY_CONDITION_NONE	query.h	/^#define ZDB_QUERY_CONDITION_NONE /;"	d
+ZDB_ROW_CHUNKS	engine.h	/^#define ZDB_ROW_CHUNKS /;"	d
+ZDB_TABLE_CHUNKS	engine.h	/^#define ZDB_TABLE_CHUNKS /;"	d
+ZdbColumn	engine.h	/^} ZdbColumn;$/;"	t	typeref:struct:__anon1
+ZdbDatabase	engine.h	/^} ZdbDatabase;$/;"	t	typeref:struct:__anon4
+ZdbEngineCreateColumn	engine.c	/^ZdbResult ZdbEngineCreateColumn(char* name, ZdbType* type, int autoincrement, ZdbColumn** column)$/;"	f
+ZdbEngineCreateDB	engine.c	/^ZdbResult ZdbEngineCreateDB(char* name, ZdbDatabase** database)$/;"	f
+ZdbEngineCreateTable	engine.c	/^ZdbResult ZdbEngineCreateTable(ZdbDatabase* db, char* name, int columnCount, ZdbColumn** columnDefs, ZdbTable** table)$/;"	f
+ZdbEngineDropDB	engine.c	/^ZdbResult ZdbEngineDropDB(ZdbDatabase* db)$/;"	f
+ZdbEngineDropTable	engine.c	/^ZdbResult ZdbEngineDropTable(ZdbTable* table)$/;"	f
+ZdbEngineGetRowDataSize	engine.c	/^ZdbResult ZdbEngineGetRowDataSize(ZdbTable* table, int columnCount, size_t* size)$/;"	f
+ZdbEngineGetValue	engine.c	/^ZdbResult ZdbEngineGetValue(ZdbTable* table, ZdbRow* row, int column, void** value)$/;"	f
+ZdbEngineInsertRow	engine.c	/^ZdbResult ZdbEngineInsertRow(ZdbTable* table, int columnCount, ZdbRow** row)$/;"	f
+ZdbEngineUpdateRow	engine.c	/^ZdbResult ZdbEngineUpdateRow(ZdbTable* table, ZdbRow* row, int valueCount, ...)$/;"	f
+ZdbEngineUpdateRowValues	engine.c	/^ZdbResult ZdbEngineUpdateRowValues(ZdbTable* table, ZdbRow* row, int valueCount, void** values)$/;"	f
+ZdbMessageDef	message.h	/^typedef struct _ZdbMessageDef ZdbMessageDef;$/;"	t	typeref:struct:_ZdbMessageDef
+ZdbMessageInitialize	message.c	/^void ZdbMessageInitialize()$/;"	f
+ZdbMessagePrint	message.c	/^void ZdbMessagePrint(ZdbMessageDef* msg, ...)$/;"	f
+ZdbMessages	message.h	/^struct _ZdbMessages* ZdbMessages;$/;"	v	typeref:struct:_ZdbMessages
+ZdbPrintColumn	engine.c	/^void ZdbPrintColumn(ZdbColumn* column)$/;"	f
+ZdbPrintColumnValue	engine.c	/^void ZdbPrintColumnValue(ZdbType* type, void* value)$/;"	f
+ZdbPrintDatabase	engine.c	/^void ZdbPrintDatabase(ZdbDatabase* db)$/;"	f
+ZdbPrintRow	engine.c	/^void ZdbPrintRow(ZdbTable* table, ZdbRow* row, int columnCount)$/;"	f
+ZdbPrintTable	engine.c	/^void ZdbPrintTable(ZdbTable* table)$/;"	f
+ZdbQuery	query.h	/^typedef struct _ZdbQuery ZdbQuery;$/;"	t	typeref:struct:_ZdbQuery
+ZdbQueryAddCondition	query.c	/^ZdbResult ZdbQueryAddCondition(ZdbQuery* query, ZdbQueryConditionType type, int column, ZdbType* valueType, const char* str)$/;"	f
+ZdbQueryAddTable	query.c	/^ZdbResult ZdbQueryAddTable(ZdbQuery* query, ZdbTable* table)$/;"	f
+ZdbQueryCondition	query.h	/^typedef struct _ZdbQueryCondition ZdbQueryCondition;$/;"	t	typeref:struct:_ZdbQueryCondition
+ZdbQueryConditionType	query.h	/^typedef int ZdbQueryConditionType;$/;"	t
+ZdbQueryCreate	query.c	/^ZdbResult ZdbQueryCreate(ZdbDatabase* database, ZdbQuery** query)$/;"	f
+ZdbQueryExecute	query.c	/^ZdbResult ZdbQueryExecute(ZdbQuery* query, ZdbRecordset** recordset)$/;"	f
+ZdbQueryFree	query.c	/^ZdbResult ZdbQueryFree(ZdbQuery* query)$/;"	f
+ZdbQueryGetBoolean	query.c	/^ZdbResult ZdbQueryGetBoolean(ZdbRecordset* recordset, int column, int* value)$/;"	f
+ZdbQueryGetFloat	query.c	/^ZdbResult ZdbQueryGetFloat(ZdbRecordset* recordset, int column, float* value)$/;"	f
+ZdbQueryGetInt	query.c	/^ZdbResult ZdbQueryGetInt(ZdbRecordset* recordset, int column, int* value)$/;"	f
+ZdbQueryGetString	query.c	/^ZdbResult ZdbQueryGetString(ZdbRecordset* recordset, int column, char** value)$/;"	f
+ZdbQueryGetValue	query.c	/^ZdbResult ZdbQueryGetValue(ZdbRecordset* recordset, int column, ZdbType* type, void** value)$/;"	f
+ZdbQueryNextResult	query.c	/^int ZdbQueryNextResult(ZdbRecordset* recordset)$/;"	f
+ZdbRecordset	query.h	/^typedef struct _ZdbRecordset ZdbRecordset;$/;"	t	typeref:struct:_ZdbRecordset
+ZdbResult	engine.h	/^typedef ZdbMessageDef* ZdbResult;$/;"	t
+ZdbRow	engine.h	/^} ZdbRow;$/;"	t	typeref:struct:__anon2
+ZdbStandardTypes	types.h	/^struct _ZdbStandardTypes* ZdbStandardTypes;$/;"	v	typeref:struct:_ZdbStandardTypes
+ZdbTable	engine.h	/^} ZdbTable;$/;"	t	typeref:struct:__anon3
+ZdbType	engine.h	/^typedef struct _ZdbType ZdbType;$/;"	t	typeref:struct:_ZdbType
+ZdbTypeCompare	types.c	/^ZdbResult ZdbTypeCompare(ZdbType* type, void* value1, void* value2, int* result)$/;"	f
+ZdbTypeCompareFn	types.h	/^typedef ZdbResult (*ZdbTypeCompareFn)(void* value1, void* value2, int* result);$/;"	t
+ZdbTypeCopy	types.c	/^ZdbResult ZdbTypeCopy(ZdbType* type, void* dest, void* src)$/;"	f
+ZdbTypeCopyFn	types.h	/^typedef ZdbResult (*ZdbTypeCopyFn)(void* dest, void* src);$/;"	t
+ZdbTypeCreate	types.c	/^ZdbResult ZdbTypeCreate(const char* name, ZdbTypeCompareFn compareFn, ZdbTypeSizeFn sizeFn, ZdbTypeCopyFn copyFn, ZdbTypeFromStringFn fromStringFn, ZdbTypeToStringFn toStringFn, ZdbTypeNextValueFn nextValueFn, ZdbType** newType)$/;"	f
+ZdbTypeFromString	types.c	/^ZdbResult ZdbTypeFromString(ZdbType* type, const char* str, void* result)$/;"	f
+ZdbTypeFromStringFn	types.h	/^typedef ZdbResult (*ZdbTypeFromStringFn)(const char* str, void* result);$/;"	t
+ZdbTypeGetName	types.c	/^ZdbResult ZdbTypeGetName(ZdbType* type, const char* result)$/;"	f
+ZdbTypeInitialize	types.c	/^ZdbResult ZdbTypeInitialize()$/;"	f
+ZdbTypeNewValue	types.c	/^ZdbResult ZdbTypeNewValue(ZdbType* type, const char* str, void** result)$/;"	f
+ZdbTypeNextValue	types.c	/^ZdbResult ZdbTypeNextValue(ZdbType* type, void* value, void* nextValue)$/;"	f
+ZdbTypeNextValueFn	types.h	/^typedef ZdbResult (*ZdbTypeNextValueFn)(void* value, void* nextValue);$/;"	t
+ZdbTypeSizeFn	types.h	/^typedef ZdbResult (*ZdbTypeSizeFn)(void* value, size_t* result);$/;"	t
+ZdbTypeSizeof	types.c	/^ZdbResult ZdbTypeSizeof(ZdbType* type, void* value, size_t* result)$/;"	f
+ZdbTypeSupportsCompare	types.c	/^int ZdbTypeSupportsCompare(ZdbType* type) { return type->compare != NULL; }$/;"	f
+ZdbTypeSupportsFromString	types.c	/^int ZdbTypeSupportsFromString(ZdbType* type) { return type->fromString != NULL; }$/;"	f
+ZdbTypeSupportsNextValue	types.c	/^int ZdbTypeSupportsNextValue(ZdbType* type) { return type->nextValue != NULL; }$/;"	f
+ZdbTypeSupportsSizeof	types.c	/^int ZdbTypeSupportsSizeof(ZdbType* type) { return type->size != NULL; }$/;"	f
+ZdbTypeSupportsToString	types.c	/^int ZdbTypeSupportsToString(ZdbType* type) { return type->toString != NULL; }$/;"	f
+ZdbTypeToString	types.c	/^ZdbResult ZdbTypeToString(ZdbType* type, void* value, size_t* length, char* result)$/;"	f
+ZdbTypeToStringFn	types.h	/^typedef ZdbResult (*ZdbTypeToStringFn)(void* value, size_t* length, char* result);$/;"	t
+_ZdbMessageDef	message.c	/^struct _ZdbMessageDef$/;"	s	file:
+_ZdbMessages	message.h	/^struct _ZdbMessages$/;"	s
+_ZdbQuery	query.c	/^struct _ZdbQuery $/;"	s	file:
+_ZdbQueryCondition	query.c	/^struct _ZdbQueryCondition$/;"	s	file:
+_ZdbRecordset	query.c	/^struct _ZdbRecordset $/;"	s	file:
+_ZdbStandardTypes	types.h	/^struct _ZdbStandardTypes$/;"	s
+_ZdbType	types.c	/^struct _ZdbType$/;"	s	file:
+_calculateRowOffset	engine.c	/^size_t _calculateRowOffset(ZdbColumn** columns, int column)$/;"	f
+_calculateRowSize	engine.c	/^size_t _calculateRowSize(int columnCount, ZdbColumn** columns)$/;"	f
+_compareValues	query.c	/^int _compareValues(ZdbType* type, void* value1, void* value2, ZdbQueryConditionType conditionType)$/;"	f
+_comparevarchar	types.c	/^ZdbResult _comparevarchar(void* value1, void* value2, int* result)$/;"	f
+_copyvarchar	types.c	/^ZdbResult _copyvarchar(void* dest, void* src)$/;"	f
+_fromstringvarchar	types.c	/^ZdbResult _fromstringvarchar(const char* str, void* result)$/;"	f
+_insertTableIntoDatabase	engine.c	/^ZdbResult _insertTableIntoDatabase(ZdbDatabase* db, ZdbTable* table)$/;"	f
+_matchesQuery	query.c	/^int _matchesQuery(ZdbRecordset* recordset)$/;"	f
+_rowdata	engine.h	/^    char _rowdata[0];               \/* This MUST be the last member of the struct *\/$/;"	m	struct:__anon2
+_sizeofvarchar	types.c	/^ZdbResult _sizeofvarchar(void* value, size_t* result)$/;"	f
+_tostringvarchar	types.c	/^ZdbResult _tostringvarchar(void* value, size_t* length, char* result)$/;"	f
+autoincrement	engine.h	/^    int autoincrement;                     \/* Whether values autoincrement *\/$/;"	m	struct:__anon1
+booleanType	types.h	/^    ZdbType* booleanType;$/;"	m	struct:_ZdbStandardTypes
+code	message.c	/^    int     code;                    \/* The numeric code *\/$/;"	m	struct:_ZdbMessageDef	file:
+columnCount	engine.h	/^    int columnCount;$/;"	m	struct:__anon3
+columnIndex	query.c	/^    int columnIndex;$/;"	m	struct:_ZdbQueryCondition	file:
+columns	engine.h	/^    ZdbColumn** columns;$/;"	m	struct:__anon3
+compare	types.c	/^    ZdbTypeCompareFn compare;$/;"	m	struct:_ZdbType	file:
+condition	query.c	/^    ZdbQueryCondition condition;    \/* The condition we will evaluate for each row *\/$/;"	m	struct:_ZdbQuery	file:
+copy	types.c	/^    ZdbTypeCopyFn copy;$/;"	m	struct:_ZdbType	file:
+data	engine.h	/^    void* data;$/;"	m	struct:__anon2
+database	query.c	/^    ZdbDatabase* database;          \/* The database this query will operate on *\/$/;"	m	struct:_ZdbQuery	file:
+floatType	types.h	/^    ZdbType* floatType;$/;"	m	struct:_ZdbStandardTypes
+formatString	message.c	/^    char*   formatString;            \/* The format string *\/$/;"	m	struct:_ZdbMessageDef	file:
+freeRowsLeft	engine.h	/^    int freeRowsLeft;$/;"	m	struct:__anon3
+freeTablesLeft	engine.h	/^    int freeTablesLeft;$/;"	m	struct:__anon4
+fromString	types.c	/^    ZdbTypeFromStringFn fromString;$/;"	m	struct:_ZdbType	file:
+intType	types.h	/^    ZdbType* intType;$/;"	m	struct:_ZdbStandardTypes
+lastInsertedValue	engine.h	/^    void* lastInsertedValue;       \/* Used mainly to track the last autoincrement number *\/$/;"	m	struct:__anon1
+main	main.c	/^int main (int argc, const char * argv[])$/;"	f
+name	engine.h	/^    char name[ZDB_LIMIT_VARCHAR];$/;"	m	struct:__anon1
+name	engine.h	/^    char name[ZDB_LIMIT_VARCHAR];$/;"	m	struct:__anon3
+name	engine.h	/^    char name[ZDB_LIMIT_VARCHAR];$/;"	m	struct:__anon4
+name	message.c	/^    char*   name;                    \/* The symbolic name *\/$/;"	m	struct:_ZdbMessageDef	file:
+name	types.c	/^    char name[ZDB_LIMIT_VARCHAR];$/;"	m	struct:_ZdbType	file:
+nextValue	types.c	/^    ZdbTypeNextValueFn nextValue;$/;"	m	struct:_ZdbType	file:
+query	query.c	/^    ZdbQuery* query;            \/* The query that created this recordset *\/$/;"	m	struct:_ZdbRecordset	file:
+rowCount	engine.h	/^    int rowCount;$/;"	m	struct:__anon3
+rowIndex	query.c	/^    int rowIndex;$/;"	m	struct:_ZdbRecordset	file:
+rows	engine.h	/^    ZdbRow** rows;$/;"	m	struct:__anon3
+size	types.c	/^    ZdbTypeSizeFn size;$/;"	m	struct:_ZdbType	file:
+table	query.c	/^    ZdbTable* table;                \/* Query subject table *\/$/;"	m	struct:_ZdbQuery	file:
+tableCount	engine.h	/^    int tableCount;$/;"	m	struct:__anon4
+tables	engine.h	/^    ZdbTable** tables;$/;"	m	struct:__anon4
+toString	types.c	/^    ZdbTypeToStringFn toString;$/;"	m	struct:_ZdbType	file:
+type	engine.h	/^    ZdbType* type;$/;"	m	struct:__anon1
+type	message.c	/^    int     type;                    \/* The type of the message *\/$/;"	m	struct:_ZdbMessageDef	file:
+type	query.c	/^    ZdbQueryConditionType type;$/;"	m	struct:_ZdbQueryCondition	file:
+value	query.c	/^    void* value;$/;"	m	struct:_ZdbQueryCondition	file:
+varcharType	types.h	/^    ZdbType* varcharType;$/;"	m	struct:_ZdbStandardTypes
