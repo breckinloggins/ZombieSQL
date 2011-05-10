@@ -186,7 +186,9 @@ We see that what we need is a message framework that can serve as both a logging
 
 We'll use the same technique as we did in the types module: declare a global struct with pointers to well-named members that will serve as an easily looked-up "enumeration" on the user side but is also our message meta-data on the implementation side. <-- Separate blog post about this technique
 
-This may all seem like overkill, but trust me it's not.  Not only will this be absolutely essential for giving good information to the user about the status of their operation or any parsing errors for their SQL, but it will help to track down and debug internal errors MUCH more quickly.
+>>>>COMMIT<<<<
+
+Looks like we need a "Command" module that's similar to the "Query" module.  The "Engine" module works with raw types and values, while the "Query" and "Command" modules work with strings.
 
 Our test cases are missing an explicit test of the autoincrement functionality, so we need to add that.
 Expand the Results to include rows affected
@@ -196,26 +198,22 @@ Strengthen query tests to test for expected number of returned rows
 
 >>>>COMMIT<<<<
 
-Now that we've done all this work, let's go for a quick win.  We already have an EQ query condition, let's introduce LT, LTE, GTE, NE as well.
-
-Column selection <-- Needs a special type: ValueRef, which points to another data item.  We will NOT be including this in the Standard Types enum
-
 COUNT(*) support
+Column selection
 Make sure all the comments that denote error strings are prefixed with ERROR so we can search for them later
 Better error messages in the result struct
 Support for basic query parameters
-
-Looks like we need a "Command" module that's similar to the "Query" module.  The "Engine" module works with raw types and values, while the "Query" and "Command" modules work with strings.
 
 Support for more generic API in query results (e.g. GetColumnType(), GetNumColumns(), GetColumnName(), generic GetValue(), etc.).  Good opportunity for some C polymorphism since both Tables and Queries can use this same interface.
 
 Print out the results in a pretty fashion.  Replace the current Print() methods.  This will be the describe interface.
 
-Update support with queries
-Alter table support <-- tricky with current implementation
-Support for DBNULL in the data and querying (IS [NOT] NULL).  Let's make two special values: DBNULL and MISSING.  Once these are present, it will become invalid to ever pass a true NULL as a column value.  It'll be easy to introduce these to the type system as we can just use special pointers.
 
-Delete support.  This will be a BIG change as it will entail moving to linked lists to represent rows.
+Update support with queries
+Alter table support
+Support for DBNULL in the data and querying (IS [NOT] NULL)
+Delete support. When deleting rows, we'll just mark them as deleted, then we'll have a COMPACT statement that goes in and cleans them up
+Compact support
 
 >>>>COMMIT<<<<<
 

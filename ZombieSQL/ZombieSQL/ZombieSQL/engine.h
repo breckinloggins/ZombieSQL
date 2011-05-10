@@ -17,7 +17,7 @@
 #define ZDB_ROW_CHUNKS          128
 #define ZDB_TABLE_CHUNKS        32
 
-typedef ZdbMessageDef* ZdbResult;
+typedef int ZdbResult;
 typedef struct _ZdbType ZdbType;
 
 typedef struct

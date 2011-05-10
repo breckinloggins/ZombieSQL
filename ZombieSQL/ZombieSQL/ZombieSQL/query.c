@@ -191,7 +191,7 @@ ZdbResult ZdbQueryGetValue(ZdbRecordset* recordset, int column, ZdbType* type, v
     if (type != recordset->query->table->columns[column]->type)
     {
         /* Attempt to cast result to an incompatible type */
-        return ZdbMessages->ErrorInvalidCast;
+        return ZDB_MESSAGE_ERR_INVALID_CAST;
     }
     
     ZdbRow* resultRow = recordset->query->table->rows[recordset->rowIndex];

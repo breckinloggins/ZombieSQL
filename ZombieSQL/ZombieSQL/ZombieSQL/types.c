@@ -189,13 +189,13 @@ ZdbResult ZdbTypeInitialize()
     
     ZdbStandardTypes = malloc(sizeof(struct _ZdbStandardTypes));
     
-    ZdbTypeCreate("int", COMPARISON_FN(int), SIZEOF_FN(int), COPY_FN(int), FROMSTRING_FN(int), TOSTRING_FN(int), NEXTVALUE_FN(int), &ZdbStandardTypes->intType);
+    result |= ZdbTypeCreate("int", COMPARISON_FN(int), SIZEOF_FN(int), COPY_FN(int), FROMSTRING_FN(int), TOSTRING_FN(int), NEXTVALUE_FN(int), &ZdbStandardTypes->intType);
     
-    ZdbTypeCreate("float", COMPARISON_FN(float), SIZEOF_FN(float), COPY_FN(float), FROMSTRING_FN(float), TOSTRING_FN(float), NEXTVALUE_FN(float), &ZdbStandardTypes->floatType);
+    result |= ZdbTypeCreate("float", COMPARISON_FN(float), SIZEOF_FN(float), COPY_FN(float), FROMSTRING_FN(float), TOSTRING_FN(float), NEXTVALUE_FN(float), &ZdbStandardTypes->floatType);
     
-    ZdbTypeCreate("boolean", COMPARISON_FN(int), SIZEOF_FN(int), COPY_FN(int), FROMSTRING_FN(int), TOSTRING_FN(int), NULL, &ZdbStandardTypes->booleanType);
+    result |= ZdbTypeCreate("boolean", COMPARISON_FN(int), SIZEOF_FN(int), COPY_FN(int), FROMSTRING_FN(int), TOSTRING_FN(int), NULL, &ZdbStandardTypes->booleanType);
     
-    ZdbTypeCreate("varchar", _comparevarchar, _sizeofvarchar, _copyvarchar, _fromstringvarchar, _tostringvarchar, NULL, &ZdbStandardTypes->varcharType);
+    result |= ZdbTypeCreate("varchar", _comparevarchar, _sizeofvarchar, _copyvarchar, _fromstringvarchar, _tostringvarchar, NULL, &ZdbStandardTypes->varcharType);
     
     return result;
 }
@@ -230,17 +230,18 @@ ZdbResult ZdbTypeCreate(const char* name, ZdbTypeCompareFn compareFn, ZdbTypeSiz
 
 ZdbResult ZdbTypeNewValue(ZdbType* type, const char* str, void** result)
 {
-    if (type == NULL)
+    if (result == NULL)
     {
-        /* Can't create a new value without a type */
+        /* Can't create a new value without a value pointer */
         return ZdbMessages->ErrorInvalidState;
     }
     
+    ZdbResult r = ZdbMessages->InfoSuccess;
     size_t size = 0;
-    ZdbResult r = ZdbTypeSizeof(type, NULL, &size);
+    r = ZdbTypeSizeof(type, NULL, &size);
     if (r != ZdbMessages->InfoSuccess)
     {
-        /* Problem getting the size information we need */
+        /* Error getting the size required for the type */
         return r;
     }
     
@@ -254,13 +255,13 @@ ZdbResult ZdbTypeNewValue(ZdbType* type, const char* str, void** result)
     r = ZdbTypeFromString(type, str, value);
     if (r != ZdbMessages->InfoSuccess)
     {
-        /* Problem creating the type from the given string */
+        /* Error converting the string to a value */
         free(value);
         return r;
     }
     
     *result = value;
-    return ZdbMessages->InfoSuccess;
+    return r;
 }
 
 ZdbResult ZdbTypeGetName(ZdbType* type, const char* result)
@@ -293,7 +294,7 @@ ZdbResult ZdbTypeCompare(ZdbType* type, void* value1, void* value2, int* result)
     if (!ZdbTypeSupportsCompare(type))
     {
         /* Types of this type can't be compared */
-        return ZdbMessages->ErrorUnsupported;
+        return ZDB_MESSAGE_ERR_UNSUPPORTED;
     }
     
     if (result == NULL)
@@ -318,14 +319,14 @@ ZdbResult ZdbTypeSizeof(ZdbType* type, void* value, size_t* result)
     {
         /* Type does not support sizeof operation */
         /* NOTE: Should never happen */
-        return ZdbMessages->ErrorUnsupported;
+        return ZDB_MESSAGE_ERR_UNSUPPORTED;
     }
     
     if (value != NULL)
     {
         /* Per-value sizes are not yet supported */
         /* TODO: Support this */
-        return ZdbMessages->ErrorUnsupported;
+        return ZDB_MESSAGE_ERR_UNSUPPORTED;
     }
     
     if (result == NULL)
@@ -367,7 +368,7 @@ ZdbResult ZdbTypeFromString(ZdbType* type, const char* str, void* result)
     if (!ZdbTypeSupportsFromString(type))
     {
         /* Type does not support fromString operation */
-        return ZdbMessages->ErrorUnsupported;
+        return ZDB_MESSAGE_ERR_UNSUPPORTED;
     }
     
     if (result == NULL)
@@ -391,7 +392,7 @@ ZdbResult ZdbTypeToString(ZdbType* type, void* value, size_t* length, char* resu
     if (!ZdbTypeSupportsToString(type))
     {
         /* Type does not support toString operation */
-        return ZdbMessages->ErrorUnsupported;
+        return ZDB_MESSAGE_ERR_UNSUPPORTED;
     }
     
     if (length == NULL)
@@ -415,7 +416,7 @@ ZdbResult ZdbTypeNextValue(ZdbType* type, void* value, void* nextValue)
     if (!ZdbTypeSupportsNextValue(type))
     {
         /* Type does not support nextValue operation */
-        return ZdbMessages->ErrorUnsupported;
+        return ZDB_MESSAGE_ERR_UNSUPPORTED;
     }
     
     if (nextValue == NULL)

@@ -195,7 +195,7 @@ int TestTypeSystem()
         return 0;
     }
     
-    if (ZdbTypeSizeof(ZdbStandardTypes->intType, &a, &size) != ZdbMessages->ErrorUnsupported)
+    if (ZdbTypeSizeof(ZdbStandardTypes->intType, &a, &size) != ZDB_MESSAGE_ERR_UNSUPPORTED)
     {
         printf("Did not receive UNSUPPORTED error message for passing in explicit type value to sizeof\n");
         return 0;
@@ -444,13 +444,6 @@ void TestBasicRowUpdate(ZdbDatabase* db)
 
 int main (int argc, const char * argv[])
 {
-    ZdbMessageInitialize();
-    printf("Testing messages...\n");
-    ZdbMessagePrint(ZdbMessages->InfoSuccess);
-    ZdbMessagePrint(ZdbMessages->ErrorAutoIncrement, "testColumn");
-    ZdbMessagePrint(ZdbMessages->ErrorInvalidCast, "int", "string");
-    printf("Done testing messages...\n");
-    
     if (ZdbTypeInitialize() != ZdbMessages->InfoSuccess)
     {
         printf("Could not initialize type system\n");

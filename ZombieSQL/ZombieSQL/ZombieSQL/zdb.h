@@ -18,5 +18,4 @@
 
 /* Declared out of include protection so it's extern in each compilation unit */
 extern struct _ZdbStandardTypes* ZdbStandardTypes;
-extern struct _ZdbMessages* ZdbMessages;
 
