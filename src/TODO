@@ -1,3 +1,5 @@
+Note: we'll show the developement of this "warts and all".
+
 Want to make a minimum SQL database
 - SQL-87 (nothing fancy)
 - Simple datatypes
@@ -188,11 +190,31 @@ We'll use the same technique as we did in the types module: declare a global str
 
 This may all seem like overkill, but trust me it's not.  Not only will this be absolutely essential for giving good information to the user about the status of their operation or any parsing errors for their SQL, but it will help to track down and debug internal errors MUCH more quickly.
 
-Our test cases are missing an explicit test of the autoincrement functionality, so we need to add that.
-Expand the Results to include rows affected
-Revamp error/result reporting
-Revamp test system
-Strengthen query tests to test for expected number of returned rows
+We've added the message system, now it's time to expand ZdbResult to be more meaningful.  The first thing we need to do is extract the ZdbPrintMessage() function to add one that inserts into a string.  We will be storing the string with our results.
+
+We want our ZdbResult to store the message that was generated.  We have a ZdbMessageDef but not an actual ZdbMessage.  That's OK, though.  The messages are just for diagnostic purposes so until there's a compelling reason to do otherwise, we'll just let the strings be the message objects.  What we WILL need to do, however, is augment ZdbResult to store the message as well as store the previous link (so we can have stacktrace-like behavior).
+
+(NOTE: PULL CHECKPOINT COMMIT HERE TO TALK ABOUT THIS PREVIOUS APPROACH)
+
+I'm write in the middle of this message functionality, and I can tell that I've made a mistake.  Returning these full-fledged message objects from every function will be a nightmare from a memory management perspective and just make writing future code harder to handle.  For this reason, I'm going to abandon this approach and go back to returning just decorated ints (ZdbResults) from functions.  The message module will now be separate and there will be a convenience function to print a message and return a result.  We will also add a log level to ensure that not EVERYTHING is printed.
+
+This is a good example of stopping what you're doing before you go too deep down a rabbit hole.  You always need to make sure you're working on the right problem.  In this case, the messages framework was threatening to become a full-fledged exception framework and, while interesting, that's not what we're trying to write.
+
+Also getting rid of ZdbResult.  Thinking back, the reason I typedef'd the int in the first place was because I anticipated passing more information inside the result.  The only reason I wanted to do this was to report the number of rows affected.  But I just realized that that's the ONLY extra piece of information I wanted to return.  Well in that case, there's a much simpler solution: just return ints and have the errors be negative values!  That way 0 means success but also "no rows affected" and everything above that is the number of rows affected (where that makes sense).  There, MUCH simpler!
+
+I'll also use this opportunity to make better error messages.  For example, the "AUTOINCREMENT" error is too specific.  It's really a "VALUE ERROR", and I'm sure we'll have more of those later.  Also, tons of "INVALID OPERATION" messages are really "YOU SHOULDN'T PASS NULL" here, and we'll reflect that fact.
+
+We're going to get rid of the message module at this point.  It's too complex for what we're trying to do.
+
+The next thing we're going to do is revamp the test code in the main function. We really need to be able to quickly run tests and see at a glance if everything passed or if something failed... we don't need to be trying to interpret the text output to see if everything is OK.  To this end, we've added some simple macros... TEST_START, TEST_ASSERT, and TEST_PASS.  The critical one is TEST_ASSERT, it will evaluate a condition and exit the program with a fail message if the condition evaluates to false.  There's no need to continue testing if one of the tests fails, as our expectation is that they will all pass.  
+
+We'll do a quick test to make sure the tests fail if something goes wrong by intentionally breaking something in the code.  As expected, that caused one of the tests to fail and the program exited.
+
+Our test cases are missing an explicit test of the autoincrement functionality, so we need to add that.  We went ahead and added that to the "CreateTestDatabase()" function by performing a query on the new rows and making sure that the ID value was different for all the rows.  As before, we tested this by temporarily breaking the autoincrement functionality and verifying that the test failed.  You MUST do this if you write tests after the fact.
+
+Expand the Results to include rows affected.  We did this by having ZdbEngineUpdateRowValues return "1" if it was successfull.  This indicates that 1 row is affected.  As we add more update, insert, and delete commands, we follow this convention.  Note that when we made this change, a bunch of tests failed, so we had to go back and update those tests to reflect the new return value.  This is a Good Thing!
+
+NOTE: Project structure reorgnization occured after this point!  Got rid of XCode project and move to standard UNIX makefile format.
 
 >>>>COMMIT<<<<
 
@@ -235,7 +257,7 @@ Benchmarks against SQLite
 
 >>>>COMMIT<<<<<
 
+Save/load database to file
 Improvements based on benchmarks (indexing?)
-Makefile for UNIX systems
 Basic security review and wrapup
 Annotated source (http://jashkenas.github.com/docco/ - jashkenas ROCKS) or rather, Rocco

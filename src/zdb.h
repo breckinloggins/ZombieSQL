@@ -9,7 +9,6 @@
 #ifndef ZDB_H
 #define ZDB_H
 
-#include "message.h"
 #include "types.h"
 #include "engine.h"
 #include "query.h"
