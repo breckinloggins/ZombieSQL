@@ -1,4 +1,0 @@
-This is ZombieSQL, a simple, braindead (hence the name) SQL database written in C from the ground-up.
-
-Note that this is NOT production-ready or secure code... not even close.  It is intended as an amusing toy and educational tool.  You have been warned.
-
