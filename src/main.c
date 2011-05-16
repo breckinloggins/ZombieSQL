@@ -15,7 +15,7 @@
 static int testLevel = 0;
 #define TEST_INDENT()                   { int i = 0; while (i++ < testLevel) { printf("\t"); } }
 #define TEST_START(name)                { TEST_INDENT(); printf("Testing %s\n", name); testLevel++; }
-#define TEST_ASSERT(test, stmt)         { if (!(stmt)) { TEST_INDENT(); printf("FAIL (%s)\n", test); exit(1); } }
+#define TEST_ASSERT(test, stmt)         { if (!(stmt)) { TEST_INDENT(); printf("!!FAIL!! (%s)\n", test); exit(1); } }
 #define TEST_PASS()                     { testLevel--; TEST_INDENT(); printf("PASS\n"); }
 
 void CreateTestRow(ZdbTable* table, char* name, char* age, char* salary, char* active)
@@ -201,10 +201,57 @@ void TestBasicQuery(ZdbDatabase* db)
     TEST_PASS();
 }
 
-void TestOneConditionQuery(ZdbDatabase* db, int column, ZdbQueryConditionType queryType, const char* value, ZdbType* valueType)
+void AssertResultContains(ZdbRecordset* rs, int column, const char* value, ZdbType* valueType, int checkCount)
+{
+    int count = 0;
+    char str[255];
+
+    while (ZdbQueryNextResult(rs))
+    {
+        void* v;
+        size_t length = 255;
+        TEST_ASSERT("get value", !ZdbQueryGetValue(rs, column, valueType, &v));
+        TEST_ASSERT("to string", !ZdbTypeToString(valueType, v, &length, str));
+        if (!strcmp(value, str))
+        {
+            count++;
+        }
+    }
+
+    sprintf(str, "Column %d == %s (%d rows [%d expected])", column, value, count, checkCount);
+    TEST_ASSERT(str, count == checkCount);
+}
+
+void TestOneConditionQuery(ZdbDatabase* db, int column, ZdbQueryConditionType queryType, const char* value, ZdbType* valueType, const char* checkValue, int checkCount)
 {
     char str[255];
-    sprintf(str, "OneConditionQuery (%s == %s)", db->tables[0]->columns[column]->name, value);
+    char op[3];
+    switch(queryType)
+    {
+        case ZDB_QUERY_CONDITION_EQ:
+            strcpy(op, "=");
+            break;
+        case ZDB_QUERY_CONDITION_NE:
+            strcpy(op, "<>");
+            break;
+        case ZDB_QUERY_CONDITION_LT:
+            strcpy(op, "<");
+            break;
+        case ZDB_QUERY_CONDITION_GT:
+            strcpy(op, ">");
+            break;
+        case ZDB_QUERY_CONDITION_LTE:
+            strcpy(op, "<=");
+            break;
+        case ZDB_QUERY_CONDITION_GTE:
+            strcpy(op, ">=");
+            break;
+        default:
+            strcpy(op, "??");
+            break;
+    }
+
+    sprintf(str, "OneConditionQuery (%s %s %s)", db->tables[0]->columns[column]->name, op, value);
     TEST_START(str);
 
     ZdbQuery* q = NULL;
@@ -215,14 +262,7 @@ void TestOneConditionQuery(ZdbDatabase* db, int column, ZdbQueryConditionType qu
     ZdbRecordset* rs = NULL;
     TEST_ASSERT("execute query", !ZdbQueryExecute(q, &rs));
 
-    while(ZdbQueryNextResult(rs))
-    {
-        void* v;
-        size_t length = 255;
-        TEST_ASSERT("get value", !ZdbQueryGetValue(rs, column, valueType, &v));
-        TEST_ASSERT("to string", !ZdbTypeToString(valueType, v, &length, str));
-        TEST_ASSERT("value equals", !strcmp(value, str));
-    }
+    AssertResultContains(rs, column, checkValue, valueType, checkCount);
 
     ZdbQueryFree(q);
     TEST_PASS();
@@ -349,14 +389,33 @@ int main (int argc, const char * argv[])
 
     TestBasicQuery(db);
 
-    TestOneConditionQuery(db, 0, ZDB_QUERY_CONDITION_EQ, "1", ZdbStandardTypes->intType);
-    TestOneConditionQuery(db, 1, ZDB_QUERY_CONDITION_EQ, "Jane", ZdbStandardTypes->varcharType);
-    TestOneConditionQuery(db, 2, ZDB_QUERY_CONDITION_EQ, "30", ZdbStandardTypes->intType);
-    TestOneConditionQuery(db, 3, ZDB_QUERY_CONDITION_EQ, "34000.000000", ZdbStandardTypes->floatType);
-    TestOneConditionQuery(db, 4, ZDB_QUERY_CONDITION_EQ, "0", ZdbStandardTypes->booleanType);
+    /* EQ */
+    TestOneConditionQuery(db, 0, ZDB_QUERY_CONDITION_EQ, "1", ZdbStandardTypes->intType, "1", 1);
+    TestOneConditionQuery(db, 1, ZDB_QUERY_CONDITION_EQ, "Jane", ZdbStandardTypes->varcharType, "Jane", 1);
+    TestOneConditionQuery(db, 2, ZDB_QUERY_CONDITION_EQ, "30", ZdbStandardTypes->intType, "30", 1);
+    TestOneConditionQuery(db, 3, ZDB_QUERY_CONDITION_EQ, "34000.000000", ZdbStandardTypes->floatType, "34000.000000", 1);
+    TestOneConditionQuery(db, 4, ZDB_QUERY_CONDITION_EQ, "0", ZdbStandardTypes->booleanType, "0", 1);
+    TestOneConditionQuery(db, 4, ZDB_QUERY_CONDITION_EQ, "1", ZdbStandardTypes->booleanType, "1", 3);
 
-    /* Tests multiple results */
-    TestOneConditionQuery(db, 4, ZDB_QUERY_CONDITION_EQ, "1", ZdbStandardTypes->booleanType);
+    /* NE */
+    TestOneConditionQuery(db, 4, ZDB_QUERY_CONDITION_NE, "0", ZdbStandardTypes->booleanType, "1", 3);
+
+    /* LT */
+    TestOneConditionQuery(db, 2, ZDB_QUERY_CONDITION_LT, "30", ZdbStandardTypes->intType, "22", 1);
+    TestOneConditionQuery(db, 1, ZDB_QUERY_CONDITION_LT, "Breckin", ZdbStandardTypes->varcharType, "Bob", 1);
+
+    /* GT */
+    TestOneConditionQuery(db, 3, ZDB_QUERY_CONDITION_GT, "45000.0", ZdbStandardTypes->floatType, "95600.000000", 1);
+    TestOneConditionQuery(db, 4, ZDB_QUERY_CONDITION_GT, "0", ZdbStandardTypes->booleanType, "1", 3);
+
+    /* LTE */
+    TestOneConditionQuery(db, 2, ZDB_QUERY_CONDITION_LTE, "22", ZdbStandardTypes->intType, "22", 1);
+    TestOneConditionQuery(db, 0, ZDB_QUERY_CONDITION_LTE, "-1", ZdbStandardTypes->intType, "-1", 0);
+
+    /* GTE */
+    TestOneConditionQuery(db, 2, ZDB_QUERY_CONDITION_GTE, "45", ZdbStandardTypes->intType, "45", 1);
+    TestOneConditionQuery(db, 4, ZDB_QUERY_CONDITION_GTE, "1", ZdbStandardTypes->booleanType, "1", 3);
+
 
     TestBasicRowUpdate(db);
 

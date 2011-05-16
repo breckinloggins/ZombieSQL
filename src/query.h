@@ -12,7 +12,12 @@
 #include "engine.h"
 
 #define ZDB_QUERY_CONDITION_NONE    0
-#define ZDB_QUERY_CONDITION_EQ      1
+#define ZDB_QUERY_CONDITION_EQ      1       /* Equals */
+#define ZDB_QUERY_CONDITION_NE      2       /* Not equals */
+#define ZDB_QUERY_CONDITION_LT      3       /* Less than */
+#define ZDB_QUERY_CONDITION_LTE     4       /* Less than or equal to */
+#define ZDB_QUERY_CONDITION_GT      5       /* Greater than */
+#define ZDB_QUERY_CONDITION_GTE     6       /* Greater than or equal to */
 
 typedef int ZdbQueryConditionType;
 

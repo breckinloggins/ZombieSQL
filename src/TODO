@@ -216,9 +216,11 @@ Expand the Results to include rows affected.  We did this by having ZdbEngineUpd
 
 NOTE: Project structure reorgnization occured after this point!  Got rid of XCode project and move to standard UNIX makefile format.
 
->>>>COMMIT<<<<
+>>>>7863e33<<<<
 
-Now that we've done all this work, let's go for a quick win.  We already have an EQ query condition, let's introduce LT, LTE, GTE, NE as well.
+Now that we've done all this work, let's go for a quick win.  We already have an EQ query condition, let's introduce LT, LTE, GTE, NE as well. First thing we had to do is refactor the test code to have an "AssertResultContains" helper function to make it easier for us to see whether we get back results we're looking for.  Our TestOneCondition() call now takes a value to check for and the number of rows that should be returned.  This allows us to say, for example, that there should be 3 rows returned > salary of 34000.  It has limitations, but it should work for now.
+
+>>>>COMMIT<<<<
 
 Column selection <-- Needs a special type: ValueRef, which points to another data item.  We will NOT be including this in the Standard Types enum
 
@@ -261,3 +263,7 @@ Save/load database to file
 Improvements based on benchmarks (indexing?)
 Basic security review and wrapup
 Annotated source (http://jashkenas.github.com/docco/ - jashkenas ROCKS) or rather, Rocco
+Fun Stuff, maybe to do:
+    - Auto indexing: automatically create and remove indexes based on common queries
+    - Support for NoSQL-style storage by having linked tables.  Reuse MongoDB or orther NoSQL syntax.  Auto discovery and manipulation of table schema when documents created and updated
+    - Simple multi-user server support
