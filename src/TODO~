@@ -267,4 +267,3 @@ Fun Stuff, maybe to do:
     - Auto indexing: automatically create and remove indexes based on common queries
     - Support for NoSQL-style storage by having linked tables.  Reuse MongoDB or orther NoSQL syntax.  Auto discovery and manipulation of table schema when documents created and updated
     - Simple multi-user server support
-	- Support JSONselect! (http://jsonselect.org/#overview)
